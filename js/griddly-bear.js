@@ -38,7 +38,26 @@ $.widget('gb.grrr', {
         this.element.append('<div></div>');
     },
     _createTable: function() {
-        this.element.append('<table></table>');
+        var table = $('<table />');
+        var thead = $('<thead />');
+        var tbody = $('<tbody />');
+
+        // create header row
+        var headTr = $('<tr />');
+        for (c in this.option.columns) {
+            var th = $('<th />');
+            th.attr('data-id', c.id);
+            th.html(c.title);
+            headTr.append(th);
+        }
+
+        thead.append(headTr);
+        table.append(thead);
+
+        tbody.append(this._drawRows());
+        table.append(tbody);
+
+        this.element.append(table);
     },
     _drawRows: function() {
 
