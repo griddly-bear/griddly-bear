@@ -24,6 +24,8 @@ $.widget('gb.grrr', {
         this._createTable();
         this._createFooter();
 
+        this._getRows()
+
         this._super();
     },
     _init: function() {
@@ -38,13 +40,41 @@ $.widget('gb.grrr', {
         this.element.append('<div></div>');
     },
     _createTable: function() {
-        this.element.append('<table></table>');
+        this.element.append('<table><tbody></tbody></table>');
     },
-    _drawRows: function() {
+    _drawRows: function(data) {
+        var self = this;
+        var columns = [];
+        var tableBody = $('tbody', this.element);
 
+        tableBody.html('');
+
+        $('thead th', this.element).each(function() {
+            columns.push(this.attr('data-id'));
+        });
+
+        $.each(data.rows, function(index, row){
+            var lastRow = $('tbody tr', self.element).last();
+
+            tableBody.append('<tr></tr>');
+
+            $.each(columns, function(index, column) {
+                lastRow.append('<td>' + row[column] + '</td>');
+            });
+
+        });
     },
     _getRows: function() {
+        var self = this;
+        var query = {};
 
+        if (this.options.url === null) {
+            throw "url is null";
+        }
+
+        $.getJSON(this.options.url, query, function(data) {
+            self._drawRows(data);
+        });
     },
 
     // public methods

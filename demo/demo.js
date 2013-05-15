@@ -1,5 +1,7 @@
 $(function() {
 
-    $('#my-grid').grrr();
+    $('#my-grid').grrr({
+        url: "demo.json"
+    });
 
 });
