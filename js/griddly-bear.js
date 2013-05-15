@@ -20,6 +20,9 @@ $.widget('gb.grrr', {
     // widget methods
     _create: function() {
         // put creation code here
+        this._createHeader();
+        this._createTable();
+        this._createFooter();
 
         this._super();
     },
@@ -29,13 +32,13 @@ $.widget('gb.grrr', {
 
     // private methods
     _createFooter: function() {
-
+        this.element.append('<div></div>');
     },
     _createHeader: function() {
-
+        this.element.append('<div></div>');
     },
     _createTable: function() {
-
+        this.element.append('<table></table>');
     },
     _drawRows: function() {
 
