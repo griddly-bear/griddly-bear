@@ -117,10 +117,17 @@ $.widget('gb.grrr', {
         var query = {};
 
         if (this.options.url === null) {
-            throw "url is null";
+            throw "grrr, dude you got no url";
         }
 
         $.getJSON(this.options.url, query, function(data) {
+            if (!(typeof data.total === 'number' && data.total % 1 == 0)) {
+                throw "grrr, total is not an integer";
+            }
+
+            self.state.rows = data.total;
+            self.state.totalPages = Math.ceil(self.state.rows / self.options.rowsPerPage);
+
             self._drawRows(data);
         });
     },
