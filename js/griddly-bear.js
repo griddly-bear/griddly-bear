@@ -114,7 +114,10 @@ $.widget('gb.grrr', {
     },
     _getRows: function() {
         var self = this;
-        var query = {};
+        var query = {
+            page: this.state.page,
+            rowsPerPage: this.options.rowsPerPage
+        };
 
         if (this.options.url === null) {
             throw "grrr, dude you got no url";
