@@ -1,0 +1,13 @@
+{
+    "total": 2,
+    "rows": [
+        {
+            "name.first": "Eric",
+            "name.last": "Clapton"
+        },
+        {
+            "name.first": "Stevie Ray",
+            "name.last": "Vaughn"
+        }
+    ]
+}
