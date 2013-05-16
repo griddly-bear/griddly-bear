@@ -33,6 +33,9 @@ $.widget('gb.grrr', {
     },
 
     // private methods
+    _buildUrl: function() {
+        
+    },
     _createFooter: function() {
         this.element.append('<div></div>');
     },
@@ -46,7 +49,7 @@ $.widget('gb.grrr', {
 
         // create header row
         var headTr = $('<tr />');
-        for (var column in this.options.columns) {
+        $.each(this.options.columns, function(index, column) {
             var th = $('<th />');
             th.attr('data-id', column.id);
 
@@ -70,7 +73,7 @@ $.widget('gb.grrr', {
             th.attr('style', style);
             th.html(column.title);
             headTr.append(th);
-        }
+        });
 
         thead.append(headTr);
         table.append(thead);
@@ -87,13 +90,12 @@ $.widget('gb.grrr', {
         tableBody.html('');
 
         $('thead th', this.element).each(function() {
-            columns.push(this.attr('data-id'));
+            columns.push($(this).attr('data-id'));
         });
 
         $.each(data.rows, function(index, row){
-            var lastRow = $('tbody tr', self.element).last();
-
             tableBody.append('<tr></tr>');
+            var lastRow = $('tbody tr', self.element).last();
 
             $.each(columns, function(index, column) {
                 lastRow.append('<td>' + row[column] + '</td>');
