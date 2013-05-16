@@ -40,7 +40,44 @@ $.widget('gb.grrr', {
         this.element.append('<div></div>');
     },
     _createTable: function() {
-        this.element.append('<table><tbody></tbody></table>');
+        var table = $('<table />');
+        var thead = $('<thead />');
+        var tbody = $('<tbody />');
+
+        // create header row
+        var headTr = $('<tr />');
+        for (var column in this.options.columns) {
+            var th = $('<th />');
+            th.attr('data-id', column.id);
+
+            if (column.required) {
+                th.attr('data-required', 'true');
+            }
+
+            if (column.primary) {
+                th.attr('data-primary', 'true');
+            }
+
+            if (column.hidden) {
+                th.addClass('hidden');
+            }
+
+            var style = '';
+            if (column.minWidth) {
+                style = style + 'min-width:' + column.minWidth + 'px; ';
+            }
+
+            th.attr('style', style);
+            th.html(column.title);
+            headTr.append(th);
+        }
+
+        thead.append(headTr);
+        table.append(thead);
+
+        table.append(tbody);
+
+        this.element.append(table);
     },
     _drawRows: function(data) {
         var self = this;
