@@ -39,9 +39,6 @@ $.widget('gb.grrr', {
     },
 
     // private methods
-    _buildUrl: function() {
-        
-    },
     _createFooter: function() {
         this.element.append('<div></div>');
     },
