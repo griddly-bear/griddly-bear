@@ -20,7 +20,7 @@ $.widget('gb.grrr', {
     state: {
         page: 1,
         rows: 0,
-        totalPages: 1
+        totalPages: 0
     },
 
     // widget methods
@@ -29,6 +29,8 @@ $.widget('gb.grrr', {
         this._createHeader();
         this._createTable();
         this._createFooter();
+
+        this._createEvents();
 
         this._getRows()
 
@@ -39,14 +41,96 @@ $.widget('gb.grrr', {
     },
 
     // private methods
+
+    _createEvents: function() {
+        var self = this;
+
+        $(this.element).on('click', 'div.gb-pagination a.gb-next', function(e) {
+            e.preventDefault();
+            self.nextPage();
+        }).on('click', 'div.gb-pagination a.gb-previous', function(e) {
+            e.preventDefault();
+            self.previousPage();
+        }).on('click', 'div.gb-pagination a.gb-page', function(e) {
+            var page = parseInt($(this).attr('data-page'));
+            e.preventDefault();
+            self.goToPage(page);
+        });
+    },
     _createFooter: function() {
-        this.element.append('<div></div>');
+        var footer = $('<div />').attr('class', 'gb-footer');
+
+        if (this.state.totalPages > 1) {
+            footer.append(this._createPagination());
+        }
+
+        this.element.append(footer);
     },
     _createHeader: function() {
         this.element.append('<div></div>');
     },
     _createPagination: function() {
+        var self = this;
+        // Remove any existing paginator:
+        $('div.gb-footer div.gb-pagination', this.element).remove();
 
+        var pagination = $('<div/>').attr('class', 'gb-pagination');
+        var ul = $('<ul />');
+
+        var el = $('<li />');
+
+        if (this.state.page > 1) {
+            var a = $('<a/>').attr({
+                href: '#',
+                class: 'gb-previous',
+                title: 'Previous Page'
+            }).text('< Previous');
+
+            el.append(a);
+        } else {
+            el.text('< Previous');
+        }
+
+        ul.append(el);
+
+        var start = Math.max(1, self.state.page - 2);
+        var end = Math.min(this.state.totalPages, self.state.page + 2);
+
+        for (var i = start; i <= end; i++) {
+            el = $('<li />');
+
+            if (i == self.state.page) {
+                el.attr('class', 'gb-current').text(i);
+            } else {
+                var a = $('<a/>').attr({
+                    href: '#',
+                    class: 'gb-page',
+                    title: 'Page ' + i,
+                    "data-page": i
+                }).text(i);
+                el.append(a);
+            }
+
+            ul.append(el);
+        }
+
+        el = $('<li/>');
+        if (this.state.page < this.state.totalPages) {
+            var a = $('<a/>').attr({
+                href: '#',
+                class: 'gb-next',
+                title: 'Next Page'
+            }).text('Next >');
+
+            el.append(a);
+        } else {
+            el.text('Next >');
+        }
+        ul.append(el);
+
+        pagination.append(ul);
+
+        return pagination;
     },
     _createTable: function() {
         var table = $('<table />');
@@ -108,6 +192,10 @@ $.widget('gb.grrr', {
             });
 
         });
+
+        if (this.state.totalPages > 1) {
+            $('div.gb-footer', this.element).append(this._createPagination());
+        }
     },
     _getRows: function() {
         var self = this;
@@ -141,6 +229,29 @@ $.widget('gb.grrr', {
     },
     reloadGrid: function() {
 
+    },
+    nextPage: function() {
+        if (this.state.page < this.state.totalPages) {
+            this.state.page++;
+            this._getRows();
+        }
+    },
+    previousPage: function() {
+        if (this.state.page > 1) {
+            this.state.page--;
+            this._getRows();
+        }
+    },
+    goToPage: function(page) {
+        if (page > this.state.totalPages) {
+            this.state.page = this.state.totalPages;
+        } else if (page < 1) {
+            this.state.page = 1;
+        } else {
+            this.state.page = page;
+        }
+
+        this._getRows();
     }
 
 });
