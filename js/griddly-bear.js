@@ -17,6 +17,12 @@ $.widget('gb.grrr', {
         url: null
     },
 
+    state: {
+        page: 1,
+        rows: 0,
+        totalPages: 1
+    },
+
     // widget methods
     _create: function() {
         // put creation code here
@@ -41,6 +47,9 @@ $.widget('gb.grrr', {
     },
     _createHeader: function() {
         this.element.append('<div></div>');
+    },
+    _createPagination: function() {
+
     },
     _createTable: function() {
         var table = $('<table />');
