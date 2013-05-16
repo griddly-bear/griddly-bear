@@ -28,6 +28,14 @@ $.widget('gb.grrr', {
     },
     _init: function() {
         this._super('_init');
+        this._initEvents();
+    },
+
+    _initEvents: function() {
+        var thisPlace = this;
+        $(window).resize(function(event) {
+            thisPlace._onResize();
+        });
     },
 
     // private methods
@@ -82,6 +90,20 @@ $.widget('gb.grrr', {
     },
     _getRows: function() {
 
+    },
+    _onResize: function() {
+        var viewPortWidth = this.element.width();
+        var minWidthTotal = 0;
+        for (var column in this.options.columns) {
+            minWidthTotal += column.minWidth;
+        }
+        if (minWidthTotal < viewPortWidth) {
+            this.element.removeClass('verticalLayout');
+            this.element.addClass('standardLayout');
+        } else {
+            this.element.removeClass('standardLayout');
+            this.element.addClass('verticalLayout');
+        }
     },
 
     // public methods

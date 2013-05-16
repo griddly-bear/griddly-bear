@@ -1,0 +1,7 @@
+#my-grid {
+    width: 100%;
+    border: 1px solid black;
+}
+#my-grid table thead tr th {
+    border: 1px solid black;
+}
