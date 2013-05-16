@@ -44,20 +44,20 @@ $.widget('gb.grrr', {
     _createEvents: function() {
         var self = this;
 
-        $(this.element).on('click', 'div.pagination a.nav-next', function(e) {
+        $(this.element).on('click', 'div.gb-pagination a.gb-next', function(e) {
             e.preventDefault();
             self.nextPage();
-        }).on('click', 'div.pagination a.nav-previous', function(e) {
+        }).on('click', 'div.gb-pagination a.gb-previous', function(e) {
             e.preventDefault();
             self.previousPage();
-        }).on('click', 'div.pagination a.nav-page', function(e) {
+        }).on('click', 'div.gb-pagination a.gb-page', function(e) {
             var page = parseInt($(this).attr('data-page'));
             e.preventDefault();
             self.goToPage(page);
         });
     },
     _createFooter: function() {
-        var footer = $('<div />').attr('class', 'footer');
+        var footer = $('<div />').attr('class', 'gb-footer');
 
         if (this.state.totalPages > 1) {
             footer.append(this._createPagination());
@@ -71,17 +71,17 @@ $.widget('gb.grrr', {
     _createPagination: function() {
         var self = this;
         // Remove any existing paginator:
-        $('div.footer div.pagination', this.element).remove();
+        $('div.gb-footer div.gb-pagination', this.element).remove();
 
-        var pagination = $('<div/>').attr('class', 'pagination');
+        var pagination = $('<div/>').attr('class', 'gb-pagination');
         var ul = $('<ul />');
 
-        var el = $('<li />').attr('class', 'previous');
+        var el = $('<li />');
 
         if (this.state.page > 1) {
             var a = $('<a/>').attr({
                 href: '#',
-                class: 'nav-previous',
+                class: 'gb-previous',
                 title: 'Previous Page'
             }).text('< Previous');
 
@@ -99,11 +99,11 @@ $.widget('gb.grrr', {
             el = $('<li />');
 
             if (i == self.state.page) {
-                el.attr('class', 'current').text(i);
+                el.attr('class', 'gb-current').text(i);
             } else {
                 var a = $('<a/>').attr({
                     href: '#',
-                    class: 'nav-page',
+                    class: 'gb-page',
                     title: 'Page ' + i,
                     "data-page": i
                 }).text(i);
@@ -117,7 +117,7 @@ $.widget('gb.grrr', {
         if (this.state.page < this.state.totalPages) {
             var a = $('<a/>').attr({
                 href: '#',
-                class: 'nav-next',
+                class: 'gb-next',
                 title: 'Next Page'
             }).text('Next >');
 
@@ -193,7 +193,7 @@ $.widget('gb.grrr', {
         });
 
         if (this.state.totalPages > 1) {
-            $('div.footer', this.element).append(this._createPagination());
+            $('div.gb-footer', this.element).append(this._createPagination());
         }
     },
     _getRows: function() {
