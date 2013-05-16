@@ -44,7 +44,7 @@ $.widget('gb.grrr', {
 
         // create header row
         var headTr = $('<tr />');
-        for (var column in this.option.columns) {
+        for (var column in this.options.columns) {
             var th = $('<th />');
             th.attr('data-id', column.id);
 
@@ -62,7 +62,7 @@ $.widget('gb.grrr', {
 
             var style = '';
             if (column.minWidth) {
-                style = style + 'min-width:' + column.minWidth + 'px';
+                style = style + 'min-width:' + column.minWidth + 'px; ';
             }
 
             th.attr('style', style);
