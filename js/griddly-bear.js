@@ -5,15 +5,15 @@ $.widget('gb.grrr', {
     options: {
         columns: null,
         exportable: false,
+        filters: {},
         footer: null,
         header: null,
-        order: null,
         onRowClick: function(){
 
         },
         rowsPerPage: 10,
         rowsPerPageOptions: [10],
-        sort: null,
+        sort: {},
         url: null
     },
 
@@ -41,7 +41,6 @@ $.widget('gb.grrr', {
     },
 
     // private methods
-
     _createEvents: function() {
         var self = this;
 
@@ -199,16 +198,38 @@ $.widget('gb.grrr', {
     },
     _getRows: function() {
         var self = this;
-        var query = {
+        var params = {
+            filters: {},
             page: this.state.page,
-            rowsPerPage: this.options.rowsPerPage
+            rowsPerPage: this.options.rowsPerPage,
+            sort: {}
         };
 
         if (this.options.url === null) {
             throw "grrr, dude you got no url";
         }
 
-        $.getJSON(this.options.url, query, function(data) {
+        var columnIds = [];
+        $.each(this.options.columns, function(index, column) {
+            columnIds.push(column.id);
+        });
+
+        $.each(this.options.sort, function(sortColumn, order) {
+            if ($.inArray(sortColumn, columnIds) > -1 && typeof order === 'string'
+            && (order === 'ASC' || order === 'DESC')) {
+                params['sort'][sortColumn] = order;
+            }
+        });
+
+        $.each(this.options.filters, function(filterColumn, filter) {
+            if ($.inArray(filterColumn, columnIds) > -1
+            && (typeof filter === 'string' || typeof filter === 'number' || typeof filter === 'boolean')) {
+                params['filters'][filterColumn] = filter;
+            }
+        });
+
+        var getData = {params: JSON.stringify(params)};
+        $.getJSON(this.options.url, getData, function(data) {
             if (!(typeof data.total === 'number' && data.total % 1 == 0)) {
                 throw "grrr, total is not an integer";
             }
