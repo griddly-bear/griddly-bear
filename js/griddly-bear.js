@@ -55,11 +55,20 @@ $.widget('gb.grrr', {
             var page = parseInt($(this).attr('data-page'));
             e.preventDefault();
             self.goToPage(page);
-        }).on('change', 'input.filter', function(e) {
-            self.options.filters[$(this).attr('data-id')] = $(this).val();
-            self.state.page = 1;
-            self._getRows();
+        }).on('change', 'input.filter', function() {
+            var options = self.options;
+            options[$(this).attr('data-id')] = $(this).val();
+
+            self.option('filters', options);
         });
+    },
+    _setOption: function(key, value) {
+        this._super(key, value);
+
+        if (key == 'filters') {
+            this.state.page = 1;
+            this._getRows();
+        }
     },
     _createFooter: function() {
         var footer = $('<div />').attr('class', 'gb-footer');
