@@ -56,10 +56,10 @@ $.widget('gb.grrr', {
             e.preventDefault();
             self.goToPage(page);
         }).on('change', 'input.filter', function() {
-            var options = self.options;
-            options[$(this).attr('data-id')] = $(this).val();
+            var filters = self.options.filters;
+            filters[$(this).attr('data-id')] = $(this).val();
 
-            self.option('filters', options);
+            self.option('filters', filters);
         });
     },
     _setOption: function(key, value) {
