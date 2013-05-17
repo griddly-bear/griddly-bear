@@ -20,7 +20,8 @@ $.widget('gb.grrr', {
     state: {
         page: 1,
         rows: 0,
-        totalPages: 0
+        totalPages: 0,
+        filtersOn: false
     },
 
     // widget methods
@@ -54,7 +55,20 @@ $.widget('gb.grrr', {
             var page = parseInt($(this).attr('data-page'));
             e.preventDefault();
             self.goToPage(page);
+        }).on('change', 'input.filter', function() {
+            var filters = self.options.filters;
+            filters[$(this).attr('data-id')] = $(this).val();
+
+            self.option('filters', filters);
         });
+    },
+    _setOption: function(key, value) {
+        this._super(key, value);
+
+        if (key == 'filters') {
+            this.state.page = 1;
+            this._getRows();
+        }
     },
     _createFooter: function() {
         var footer = $('<div />').attr('class', 'gb-footer');
@@ -72,6 +86,10 @@ $.widget('gb.grrr', {
         var self = this;
         // Remove any existing paginator:
         $('div.gb-footer div.gb-pagination', this.element).remove();
+
+        if (this.state.totalPages <= 1) {
+            return;
+        }
 
         var pagination = $('<div/>').attr('class', 'gb-pagination');
         var ul = $('<ul />');
@@ -160,7 +178,10 @@ $.widget('gb.grrr', {
             }
 
             th.attr('style', style);
-            th.html(column.title);
+            th.html(
+                '<span class="gb-title">' + column.title + '</span>' +
+                '<input type="text" class="filter hidden" name="filter[]" data-id="' + column.id + '" />'
+            );
             headTr.append(th);
         });
 
@@ -192,9 +213,7 @@ $.widget('gb.grrr', {
 
         });
 
-        if (this.state.totalPages > 1) {
-            $('div.gb-footer', this.element).append(this._createPagination());
-        }
+        $('div.gb-footer', this.element).append(this._createPagination());
     },
     _getRows: function() {
         var self = this;
@@ -273,6 +292,16 @@ $.widget('gb.grrr', {
         }
 
         this._getRows();
+    },
+    toggleFilters: function()
+    {
+        this.state.filtersOn = !this.state.filtersOn;
+
+        if (this.state.filtersOn) {
+            $('input.filter', this.element).show();
+        } else {
+            $('input.filter', this.element).hide();
+        }
     }
 
 });
