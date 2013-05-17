@@ -23,6 +23,8 @@ $.widget('gb.grrr', {
         filtersOn: false
     },
 
+    _clearDiv: '<div class="gb-clear-both"></div>',
+
     // widget methods
     _create: function() {
         // put creation code here
@@ -71,16 +73,18 @@ $.widget('gb.grrr', {
     },
     _createFooter: function() {
         var footer = $('<div />').addClass('gb-footer');
-        footer.html('footer');
         if (this.state.totalPages > 1) {
             footer.append(this._createPagination());
         }
 
+        footer.append(this._clearDiv);
         this.element.append(footer);
     },
     _createHeader: function() {
         var header = $('<div />').addClass('gb-header');
         header.html('header');
+
+        header.append(this._clearDiv);
         this.element.append(header);
     },
     _createPagination: function() {
@@ -159,8 +163,17 @@ $.widget('gb.grrr', {
         var headTr = $('<tr />');
         headTr.addClass('gb-data-table-header-row');
         $.each(this.options.columns, function(index, column) {
+            var span = $('<span />').addClass('gb-title').html(column.title);
+            var filter = $('<input />').attr({
+                'type': 'text',
+                'name': 'filter[]',
+                'data-id': column.id,
+                'placeholder': 'Search...'
+            }).addClass('filter gb-hidden');
+
             var th = $('<th />');
             th.attr('data-id', column.id);
+            th.append(span).append(filter);
 
             if (column.required) {
                 th.attr('data-required', 'true');
@@ -180,10 +193,6 @@ $.widget('gb.grrr', {
             }
 
             th.attr('style', style);
-            th.html(
-                '<span class="gb-title">' + column.title + '</span>' +
-                '<input type="text" class="filter hidden" name="filter[]" data-id="' + column.id + '" />'
-            );
             headTr.append(th);
         });
 
