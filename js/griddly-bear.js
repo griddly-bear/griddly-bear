@@ -102,7 +102,6 @@ $.widget('gb.grrr', {
     },
     _createHeader: function() {
         var header = $('<div />').addClass('gb-header');
-        header.html('header');
 
         header.append(this._clearDiv);
         this.element.append(header);
