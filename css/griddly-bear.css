@@ -1,0 +1,46 @@
+.gb-header {
+    border-bottom:1px solid #DBDBDB;
+    font-family:'Verdana';
+    font-size:12px;
+    padding:3px;
+}
+
+.gb-data-table {
+    padding:0px;
+    border-spacing:0px;
+    border-collapse: collapse;
+    width:100%;
+    font-family:'Verdana';
+    font-size:12px;
+
+}
+
+.gb-data-table .gb-data-table-header-row {
+
+}
+
+.gb-data-table .gb-data-table-header-row th {
+    padding:7px 10px;
+    border-bottom:1px solid #DBDBDB;
+    text-align:left;
+}
+
+.gb-data-table .gb-data-row.alt {
+    background-color:#F5F5F5;
+}
+
+.gb-data-table .gb-data-row .gb-data-cell {
+    padding:5px 10px;
+    border-bottom:1px solid #DBDBDB;
+}
+
+.gb-data-table .gb-data-row:last-child .gb-data-cell {
+    border-bottom:0px;
+}
+
+.gb-footer {
+    border-top:1px solid #DBDBDB;
+    font-family:'Verdana';
+    font-size:12px;
+    padding:3px;
+}
