@@ -50,7 +50,7 @@ $.widget('gb.grrr', {
     _setOption: function(key, value) {
         this._super(key, value);
 
-        if (key == 'filters') {
+        if ($.inArray(key, ['filters', 'sort']) !== -1) {
             this.state.page = 1;
             this._getRows();
         }
@@ -70,7 +70,20 @@ $.widget('gb.grrr', {
             var page = parseInt($(this).attr('data-page'));
             e.preventDefault();
             self.goToPage(page);
-        }).on('change', 'input.filter', function() {
+
+        }).on('click', 'th a.gb-column-sort', function(e) {
+            e.preventDefault();
+
+            var columnId = $(this).attr('data-id');
+            var order = columnId in self.options.sort ?
+                (self.options.sort[columnId].toLowerCase() == 'asc' ? 'desc' : 'asc') : 'asc';
+
+            var sort = {};
+            sort[columnId] = order;
+
+            self.option('sort', sort);
+        })
+        .on('change', 'input.filter', function() {
             var filters = self.options.filters;
             filters[$(this).attr('data-id')] = $(this).val();
 
@@ -187,9 +200,22 @@ $.widget('gb.grrr', {
                 style = style + 'min-width:' + column.minWidth + 'px; ';
             }
 
-            th.append(
-                $('<span/>').attr('class', 'gb-title').text(column.title)
-            );
+            if (column.sortable) {
+                th.append(
+                    $('<a/>').attr({
+                        href: '#',
+                        class: 'gb-column-sort',
+                        "data-id": column.id,
+                        "data-sort": 'asc'
+                    }).append(
+                        $('<span/>').attr('class', 'gb-title').text(column.title)
+                    )
+                );
+            } else {
+                th.append(
+                    $('<span/>').attr('class', 'gb-title').text(column.title)
+                );
+            }
 
             if (column.filterable) {
                 th.append(
@@ -260,8 +286,8 @@ $.widget('gb.grrr', {
 
         $.each(this.options.sort, function(sortColumn, order) {
             if ($.inArray(sortColumn, columnIds) > -1 && typeof order === 'string'
-            && (order === 'ASC' || order === 'DESC')) {
-                params['sort'][sortColumn] = order;
+            && (order.toUpperCase() === 'ASC' || order.toUpperCase() === 'DESC')) {
+                params['sort'][sortColumn] = order.toUpperCase();
             }
         });
 
