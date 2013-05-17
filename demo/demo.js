@@ -13,4 +13,10 @@ $(function() {
             }
         ]
     });
+
+
+    $('a.toggle-filters').on('click', function(e) {
+        e.preventDefault();
+        $('#my-grid').grrr('toggleFilters');
+    })
 });
