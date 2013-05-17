@@ -20,29 +20,35 @@ $.widget('gb.grrr', {
     state: {
         page: 1,
         rows: 0,
-        totalPages: 1
+        totalPages: 1,
+        lastWidth: 0,  // Compared to the current width to determine expanding or contracting.
+        isResizing: false,  // So we don't get race conditions.
+        padding: false // How much padding we have on the cells.
     },
 
     // widget methods
     _create: function() {
+        var self = this;
         // put creation code here
         this._createHeader();
         this._createTable();
         this._createFooter();
 
-        this._getRows()
-
+        this._getRows();
+        //setTimeout(function() {self._onResize();}, 5000);
         this._super();
     },
     _init: function() {
         this._super('_init');
-        this._initEvents();
+        this._initGlobalEvents();
     },
 
-    _initEvents: function() {
-        var thisPlace = this;
-        $(window).resize(function(event) {
-            thisPlace._onResize();
+    _initGlobalEvents: function() {
+        var self = this;
+        $(window).resize(function() {
+            if (self.state.isResizing == false) {
+                self._onResize();
+            }
         });
     },
 
@@ -57,9 +63,13 @@ $.widget('gb.grrr', {
 
     },
     _createTable: function() {
+        var self = this;
+
         var table = $('<table />');
         var thead = $('<thead />');
         var tbody = $('<tbody />');
+
+        this.element.addClass("gb-grid");
 
         // create header row
         var headTr = $('<tr />');
@@ -112,10 +122,11 @@ $.widget('gb.grrr', {
             var lastRow = $('tbody tr', self.element).last();
 
             $.each(columns, function(index, column) {
-                lastRow.append('<td>' + row[column] + '</td>');
+                lastRow.append('<td data-id="' + column + '">' + row[column] + '</td>');
             });
 
         });
+        self._onResize();
     },
     _getRows: function() {
         var self = this;
@@ -139,19 +150,90 @@ $.widget('gb.grrr', {
             self._drawRows(data);
         });
     },
+
     _onResize: function() {
-        var viewPortWidth = this.element.width();
-        var minWidthTotal = 0;
-        for (var column in this.options.columns) {
-            minWidthTotal += column.minWidth;
+        var self = this;
+        self.state.isResizing = true;
+        var viewPortWidth = self.element.width();
+        var table = self.element.children('table');
+        var isVerticalLayout = false;
+
+        var minWidthTotal = self._getMinWidthTotal();
+
+        if (self.state.padding == false) {
+            // Get padding and margin of the cells.
+            //                       thead              tr                 th
+            var firstCellDom = table.children(":first").children(":first").children(":first");
+            self.state.padding = (parseInt(firstCellDom.css('padding').replace("px", "")) +
+                parseInt(firstCellDom.css('margin').replace("px", ""))) * 2;
         }
-        if (minWidthTotal < viewPortWidth) {
-            this.element.removeClass('verticalLayout');
-            this.element.addClass('standardLayout');
+
+        if (viewPortWidth < table.width()) {
+            console.log("asdfasdf");
+            while (viewPortWidth < table.width()) {
+                var foundRemovable = false;
+                $.each(this.options.columns.reverse(), function(index, column) {
+                    var columnHeader = $('.gb-grid th[data-id="' + column.id + '"]');
+                    if (typeof columnHeader.attr("data-required") == 'undefined' && columnHeader.is(":visible")) {
+                        console.log(column.title);
+                        $('.gb-grid *[data-id="' + column.id + '"]').hide();
+                        foundRemovable = true;
+                        return false;
+                    }
+                });
+                minWidthTotal = self._getMinWidthTotal();
+                if (foundRemovable == false) {
+                    isVerticalLayout = true;
+                    break;
+                } else {
+                    console.log("standard");
+                }
+            }
+        } else if (minWidthTotal < table.width()) {
+            console.log("ftttfttt");
+            var spaceToFill = table.width() - minWidthTotal;
+            console.log("sp: " + spaceToFill);
+            $.each(this.options.columns, function(index, column) {
+                if (!$('.gb-grid th[data-id="' + column.id + '"]').is(":visible") &&
+                    (column.minWidth + self.state.padding) < spaceToFill) {
+                    $('.gb-grid *[data-id="' + column.id + '"]').show();
+                    return false;
+                }
+            });
+            minWidthTotal = self._getMinWidthTotal();
         } else {
-            this.element.removeClass('standardLayout');
-            this.element.addClass('verticalLayout');
+            console.log("meow");
+            isVerticalLayout = true;
         }
+        console.log("vp: " + viewPortWidth);
+        console.log("mw: " + minWidthTotal);
+        console.log("tw: " + table.width());
+
+        if (isVerticalLayout) {
+            self.element.addClass('gb-layout-vertical');
+        } else {
+            self.element.removeClass('gb-layout-vertical');
+        }
+
+        self.state.isResizing = false;
+    },
+
+    _getMinWidthTotal: function()
+    {
+        var self = this;
+        var minWidthTotal = 0;
+        $.each(this.options.columns, function(index, column) {
+            if (self.element.hasClass('gb-layout-vertical')) {
+                if (typeof $('.gb-grid th[data-id="' + column.id + '"]').attr("data-required") != 'undefined') {
+                    minWidthTotal += (column.minWidth + self.state.padding + 10);
+                }
+            } else {
+                if ($('.gb-grid th[data-id="' + column.id + '"]').is(":visible")) {
+                    minWidthTotal += (column.minWidth + self.state.padding + 10);
+                }
+            }
+        });
+        return minWidthTotal;
     },
 
     // public methods

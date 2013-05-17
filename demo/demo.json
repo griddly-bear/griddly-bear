@@ -2,12 +2,18 @@
     "total": 2,
     "rows": [
         {
+            "name.prefix": "Lord",
             "name.first": "Eric",
-            "name.last": "Clapton"
+            "name.middle": "Reginald",
+            "name.last": "Clapton",
+            "name.suffix": "Esq."
         },
         {
+            "name.prefix": "Mr.",
             "name.first": "Stevie Ray",
-            "name.last": "Vaughn"
+            "name.middle": "\"Ol' Texas Toast\"",
+            "name.last": "Vaughn",
+            "name.suffix": "Jr."
         }
     ]
 }

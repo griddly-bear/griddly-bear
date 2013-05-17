@@ -1,7 +1,28 @@
-#my-grid {
+.gb-grid {
     width: 100%;
-    border: 1px solid black;
+    background-color: #66FFCC;
+    overflow: hidden;
 }
-#my-grid table thead tr th {
-    border: 1px solid black;
+.gb-grid table {
+    width: 100%;
 }
+.gb-grid table thead tr th {
+    background-color: silver;
+}
+
+.gb-layout-vertical thead {
+    display: none;
+}
+
+.gb-layout-vertical tr {
+    display: inline;
+    clear: both;
+}
+
+.gb-layout-vertical td {
+    display: inline;
+}
+.gb-layout-vertical td:after {
+    clear: both;
+}
+
