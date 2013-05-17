@@ -1,7 +1,7 @@
 $(function() {
 
     $('#my-grid').grrr({
-        url: "demo.json",
+        url: "/demo/data.php",
         columns: [
             {
                 id: "name.first",
@@ -13,4 +13,10 @@ $(function() {
             }
         ]
     });
+
+
+    $('a.toggle-filters').on('click', function(e) {
+        e.preventDefault();
+        $('#my-grid').grrr('toggleFilters');
+    })
 });
