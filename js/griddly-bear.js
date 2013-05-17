@@ -16,6 +16,13 @@ $.widget('gb.grrr', {
         alternatingRows: true
     },
 
+    columnDefaults: {
+        primary: false,
+        hidden: false,
+        sortable: true,
+        filterable: true
+    },
+
     state: {
         page: 1,
         rows: 0,
@@ -41,6 +48,14 @@ $.widget('gb.grrr', {
     _init: function() {
         this._super('_init');
     },
+    _setOption: function(key, value) {
+        this._super(key, value);
+
+        if ($.inArray(key, ['filters', 'sort']) !== -1) {
+            this.state.page = 1;
+            this._getRows();
+        }
+    },
 
     // private methods
     _createEvents: function() {
@@ -56,20 +71,25 @@ $.widget('gb.grrr', {
             var page = parseInt($(this).attr('data-page'));
             e.preventDefault();
             self.goToPage(page);
-        }).on('change', 'input.filter', function() {
+
+        }).on('click', 'th a.gb-column-sort', function(e) {
+            e.preventDefault();
+
+            var columnId = $(this).attr('data-id');
+            var order = columnId in self.options.sort ?
+                (self.options.sort[columnId].toLowerCase() == 'asc' ? 'desc' : 'asc') : 'asc';
+
+            var sort = {};
+            sort[columnId] = order;
+
+            self.option('sort', sort);
+        })
+        .on('change', 'input.filter', function() {
             var filters = self.options.filters;
             filters[$(this).attr('data-id')] = $(this).val();
 
             self.option('filters', filters);
         });
-    },
-    _setOption: function(key, value) {
-        this._super(key, value);
-
-        if (key == 'filters') {
-            this.state.page = 1;
-            this._getRows();
-        }
     },
     _createFooter: function() {
         var footer = $('<div />').addClass('gb-footer');
@@ -155,6 +175,8 @@ $.widget('gb.grrr', {
         return pagination;
     },
     _createTable: function() {
+        var self = this;
+
         var table = $('<table />');
         var thead = $('<thead />');
         var tbody = $('<tbody />');
@@ -163,17 +185,10 @@ $.widget('gb.grrr', {
         var headTr = $('<tr />');
         headTr.addClass('gb-data-table-header-row');
         $.each(this.options.columns, function(index, column) {
-            var span = $('<span />').addClass('gb-title').html(column.title);
-            var filter = $('<input />').attr({
-                'type': 'text',
-                'name': 'filter[]',
-                'data-id': column.id,
-                'placeholder': 'Search...'
-            }).addClass('filter gb-hidden');
 
-            var th = $('<th />');
-            th.attr('data-id', column.id);
-            th.append(span).append(filter);
+            column = $.extend({}, self.columnDefaults, column);
+
+            var th = $('<th />').attr('data-id', column.id);
 
             if (column.required) {
                 th.attr('data-required', 'true');
@@ -192,7 +207,39 @@ $.widget('gb.grrr', {
                 style = style + 'min-width:' + column.minWidth + 'px; ';
             }
 
-            th.attr('style', style);
+            if (column.sortable) {
+                th.append(
+                    $('<a/>').attr({
+                        href: '#',
+                        class: 'gb-column-sort',
+                        "data-id": column.id,
+                        "data-sort": 'asc'
+                    }).append(
+                        $('<span/>').attr('class', 'gb-title').text(column.title)
+                    )
+                );
+            } else {
+                th.append(
+                    $('<span/>').attr('class', 'gb-title').text(column.title)
+                );
+            }
+
+            if (column.filterable) {
+                th.append(
+                    $('<input />').attr({
+                        'type': 'text',
+                        'name': 'filter[]',
+                        'data-id': column.id,
+                        'placeholder': 'Search...'
+                    }).addClass('filter gb-hidden')
+                );
+            }
+
+            th.attr({
+                style: style,
+                "data-id": column.id
+            });
+
             headTr.append(th);
         });
 
@@ -256,8 +303,8 @@ $.widget('gb.grrr', {
 
         $.each(this.options.sort, function(sortColumn, order) {
             if ($.inArray(sortColumn, columnIds) > -1 && typeof order === 'string'
-            && (order === 'ASC' || order === 'DESC')) {
-                params['sort'][sortColumn] = order;
+            && (order.toUpperCase() === 'ASC' || order.toUpperCase() === 'DESC')) {
+                params['sort'][sortColumn] = order.toUpperCase();
             }
         });
 

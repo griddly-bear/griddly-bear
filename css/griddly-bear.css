@@ -33,6 +33,11 @@
     text-align:left;
 }
 
+.gb-data-table .gb-data-table-header-row th a.gb-column-sort {
+    text-decoration: none;
+    color:#000000;
+}
+
 .gb-data-table .gb-data-table-header-row th span.gb-title {
     display:block;
 }
