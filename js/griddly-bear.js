@@ -17,6 +17,13 @@ $.widget('gb.grrr', {
         url: null
     },
 
+    columnDefaults: {
+        primary: false,
+        hidden: false,
+        sortable: true,
+        filterable: true
+    },
+
     state: {
         page: 1,
         rows: 0,
@@ -150,6 +157,8 @@ $.widget('gb.grrr', {
         return pagination;
     },
     _createTable: function() {
+        var self = this;
+
         var table = $('<table />');
         var thead = $('<thead />');
         var tbody = $('<tbody />');
@@ -157,8 +166,9 @@ $.widget('gb.grrr', {
         // create header row
         var headTr = $('<tr />');
         $.each(this.options.columns, function(index, column) {
+            column = $.extend({}, self.columnDefaults, column);
+
             var th = $('<th />');
-            th.attr('data-id', column.id);
 
             if (column.required) {
                 th.attr('data-required', 'true');
@@ -177,11 +187,26 @@ $.widget('gb.grrr', {
                 style = style + 'min-width:' + column.minWidth + 'px; ';
             }
 
-            th.attr('style', style);
-            th.html(
-                '<span class="gb-title">' + column.title + '</span>' +
-                '<input type="text" class="filter hidden" name="filter[]" data-id="' + column.id + '" />'
+            th.append(
+                $('<span/>').attr('class', 'gb-title').text(column.title)
             );
+
+            if (column.filterable) {
+                th.append(
+                    $('<input/>').attr({
+                        type: 'text',
+                        class: 'filter hidden',
+                        name: 'filter[]',
+                        "data-id": column.id
+                    })
+                );
+            }
+
+            th.attr({
+                style: style,
+                "data-id": column.id
+            });
+
             headTr.append(th);
         });
 
