@@ -40,6 +40,14 @@ $.widget('gb.grrr', {
     _init: function() {
         this._super('_init');
     },
+    _setOption: function(key, value) {
+        this._super(key, value);
+
+        if (key == 'filters') {
+            this.state.page = 1;
+            this._getRows();
+        }
+    },
 
     // private methods
     _createEvents: function() {
@@ -61,14 +69,6 @@ $.widget('gb.grrr', {
 
             self.option('filters', filters);
         });
-    },
-    _setOption: function(key, value) {
-        this._super(key, value);
-
-        if (key == 'filters') {
-            this.state.page = 1;
-            this._getRows();
-        }
     },
     _createFooter: function() {
         var footer = $('<div />').attr('class', 'gb-footer');
