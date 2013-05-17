@@ -272,7 +272,7 @@ $.widget('gb.grrr', {
             filters: {},
             page: this.state.page,
             rowsPerPage: this.options.rowsPerPage,
-            sort: this.options.sort
+            sort: {}
         };
 
         if (this.options.url === null) {
@@ -286,8 +286,8 @@ $.widget('gb.grrr', {
 
         $.each(this.options.sort, function(sortColumn, order) {
             if ($.inArray(sortColumn, columnIds) > -1 && typeof order === 'string'
-            && (order === 'ASC' || order === 'DESC')) {
-                params['sort'][sortColumn] = order;
+            && (order.toUpperCase() === 'ASC' || order.toUpperCase() === 'DESC')) {
+                params['sort'][sortColumn] = order.toUpperCase();
             }
         });
 
