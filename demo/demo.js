@@ -1,7 +1,7 @@
 $(function() {
 
     $('#my-grid').grrr({
-        url: "/demo/data.php",
+        url: "demo.json",
         columns: [
             {
                 id: "name.first",
