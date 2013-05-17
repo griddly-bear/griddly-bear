@@ -1,6 +1,13 @@
 .gb-header {
     border-bottom:1px solid #DBDBDB;
-    font-family:'Verdana';
+    font-family:'Verdana', 'Tahoma', 'Arial';
+    font-size:12px;
+    padding:3px;
+}
+
+.gb-footer {
+    border-top:1px solid #DBDBDB;
+    font-family:'Verdana', 'Tahoma', 'Arial';
     font-size:12px;
     padding:3px;
 }
@@ -10,7 +17,7 @@
     border-spacing:0px;
     border-collapse: collapse;
     width:100%;
-    font-family:'Verdana';
+    font-family:'Verdana', 'Tahoma', 'Arial';
     font-size:12px;
 
 }
@@ -36,11 +43,4 @@
 
 .gb-data-table .gb-data-row:last-child .gb-data-cell {
     border-bottom:0px;
-}
-
-.gb-footer {
-    border-top:1px solid #DBDBDB;
-    font-family:'Verdana';
-    font-size:12px;
-    padding:3px;
 }
