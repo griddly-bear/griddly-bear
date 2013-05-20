@@ -8,13 +8,12 @@ $.widget('gb.grrr', {
         filters: {},
         footer: null,
         header: null,
-        onRowClick: function(){
-
-        },
+        onRowClick: function(){},
         rowsPerPage: 10,
         rowsPerPageOptions: [10],
         sort: {},
-        url: null
+        url: null,
+        alternatingRows: true
     },
 
     columnDefaults: {
@@ -30,6 +29,8 @@ $.widget('gb.grrr', {
         totalPages: 0,
         filtersOn: false
     },
+
+    _clearDiv: '<div class="gb-clear-both"></div>',
 
     // widget methods
     _create: function() {
@@ -91,16 +92,19 @@ $.widget('gb.grrr', {
         });
     },
     _createFooter: function() {
-        var footer = $('<div />').attr('class', 'gb-footer');
-
+        var footer = $('<div />').addClass('gb-footer');
         if (this.state.totalPages > 1) {
             footer.append(this._createPagination());
         }
 
+        footer.append(this._clearDiv);
         this.element.append(footer);
     },
     _createHeader: function() {
-        this.element.append('<div></div>');
+        var header = $('<div />').addClass('gb-header');
+
+        header.append(this._clearDiv);
+        this.element.append(header);
     },
     _createPagination: function() {
         var self = this;
@@ -178,10 +182,12 @@ $.widget('gb.grrr', {
 
         // create header row
         var headTr = $('<tr />');
+        headTr.addClass('gb-data-table-header-row');
         $.each(this.options.columns, function(index, column) {
+
             column = $.extend({}, self.columnDefaults, column);
 
-            var th = $('<th />');
+            var th = $('<th />').attr('data-id', column.id);
 
             if (column.required) {
                 th.attr('data-required', 'true');
@@ -219,12 +225,12 @@ $.widget('gb.grrr', {
 
             if (column.filterable) {
                 th.append(
-                    $('<input/>').attr({
-                        type: 'text',
-                        class: 'filter hidden',
-                        name: 'filter[]',
-                        "data-id": column.id
-                    })
+                    $('<input />').attr({
+                        'type': 'text',
+                        'name': 'filter[]',
+                        'data-id': column.id,
+                        'placeholder': 'Search...'
+                    }).addClass('filter gb-hidden')
                 );
             }
 
@@ -238,8 +244,8 @@ $.widget('gb.grrr', {
 
         thead.append(headTr);
         table.append(thead);
-
         table.append(tbody);
+        table.addClass('gb-data-table');
 
         this.element.append(table);
     },
@@ -255,11 +261,21 @@ $.widget('gb.grrr', {
         });
 
         $.each(data.rows, function(index, row){
-            tableBody.append('<tr></tr>');
-            var lastRow = $('tbody tr', self.element).last();
+            var tr = $('<tr />');
+            tr.addClass('gb-data-row')
+            if (self.options.alternatingRows && !(index % 2)) {
+                tr.addClass('alt');
+            }
+            tableBody.append(tr);
+            var lastRow = $('tbody tr.gb-data-row', self.element).last();
 
             $.each(columns, function(index, column) {
-                lastRow.append('<td>' + row[column] + '</td>');
+                var td = $('<td />');
+                td.addClass('gb-data-cell').html(row[column]);
+                if ($('thead th:eq(' + index + ')').data('primary')) {
+                    td.attr('data-primary', 'true');
+                }
+                lastRow.append(td);
             });
 
         });
