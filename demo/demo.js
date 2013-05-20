@@ -13,12 +13,49 @@ $(function() {
                 id: "name.last",
                 title: "Last Name"
             }
-        ]
+        ],
+        header: {
+            pagination:true,  // default: false
+            title: 'Grid Title',
+            buttons: [
+                {
+                    icon: '/demo/images/icon_funnel.png',
+                    title: 'Toggle Filters',
+                    label: '',
+                    click: function(){
+                        $('#my-grid').grrr('toggleFilters');
+                    }
+                },
+                {
+                    icon: '/demo/images/table_export.png',
+                    title: 'button2',
+                    label: '&nbsp;Label',
+                    click: function(){
+                        alert('clicked header 2');
+                    }
+                }
+            ]
+        },
+        footer: {
+            pagination: true,  // default: true
+            buttons: [
+                {
+                    icon: '/demo/images/icon_funnel.png',
+                    title: 'Toggle Filters',
+                    label: '',
+                    click: function(){
+                        $('#my-grid').grrr('toggleFilters');
+                    }
+                },
+                {
+                    icon: '/demo/images/table_export.png',
+                    title: 'button2',
+                    label: '&nbsp;Label',
+                    click: function(){
+                        alert('clicked footer 2');
+                    }
+                }
+            ]
+        }
     });
-
-
-    $('a.toggle-filters').on('click', function(e) {
-        e.preventDefault();
-        $('#my-grid').grrr('toggleFilters');
-    })
 });
