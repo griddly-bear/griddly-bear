@@ -333,8 +333,12 @@ $.widget('gb.grrr', {
             $.each(columns, function(index, column) {
                 var td = $('<td />');
                 td.addClass('gb-data-cell').html(row[column]);
-                if ($('thead th:eq(' + index + ')').data('primary')) {
-                    td.attr('data-primary', 'true');
+                for (var i in self.options.columns) {
+                    if (self.options.columns[i].id == column &&
+                        self.options.columns[i].primary != undefined &&
+                        self.options.columns[i].primary) {
+                        td.attr('data-primary', 'true');
+                    }
                 }
                 lastRow.append(td);
             });
