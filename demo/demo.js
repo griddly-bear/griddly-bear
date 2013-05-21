@@ -18,7 +18,7 @@ $(function() {
             title: 'Grid Title',
             buttons: [
                 {
-                    icon: '/demo/images/icon_funnel.png',
+                    icon: 'images/icon_funnel.png',
                     title: 'Toggle Filters',
                     label: '',
                     click: function(){
@@ -26,7 +26,7 @@ $(function() {
                     }
                 },
                 {
-                    icon: '/demo/images/table_export.png',
+                    icon: 'images/table_export.png',
                     title: 'button2',
                     label: '&nbsp;Label',
                     click: function(){
@@ -39,7 +39,7 @@ $(function() {
             pagination: true,  // default: true
             buttons: [
                 {
-                    icon: '/demo/images/icon_funnel.png',
+                    icon: 'images/icon_funnel.png',
                     title: 'Toggle Filters',
                     label: '',
                     click: function(){
@@ -47,7 +47,7 @@ $(function() {
                     }
                 },
                 {
-                    icon: '/demo/images/table_export.png',
+                    icon: 'images/table_export.png',
                     title: 'button2',
                     label: '&nbsp;Label',
                     click: function(){
