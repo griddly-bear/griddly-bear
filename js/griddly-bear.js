@@ -2,8 +2,15 @@
 
 $.widget('gb.grrr', {
 
+    clearDiv: '<div class="gb-clear-both"></div>',
+    columnDefaults: {
+        primary: false,
+        hidden: false,
+        sortable: true,
+        filterable: true
+    },
     options: {
-        columns: null,
+        columns: {},
         exportable: false,
         filters: {},
         footer: null,
@@ -15,14 +22,6 @@ $.widget('gb.grrr', {
         url: null,
         alternatingRows: true
     },
-
-    columnDefaults: {
-        primary: false,
-        hidden: false,
-        sortable: true,
-        filterable: true
-    },
-
     state: {
         page: 1,
         rows: 0,
@@ -30,19 +29,17 @@ $.widget('gb.grrr', {
         filtersOn: false
     },
 
-    _initialized: false,
-    _clearDiv: '<div class="gb-clear-both"></div>',
-    _gridData: {},
-
     // widget methods
     _create: function() {
-        // put creation code here
-        this._getRows();
-
         this._super();
-    },
-    _init: function() {
-        this._super('_init');
+
+        // put creation code here
+        this._createHeader();
+        this._createTable();
+        this._createFooter();
+        this._createEvents();
+
+        this._getRows();
     },
     _setOption: function(key, value) {
         this._super(key, value);
@@ -58,9 +55,11 @@ $.widget('gb.grrr', {
         if (params.click == undefined || !$.isFunction(params.click)) {
             return false;
         }
+
         var button = $("<button />")
             .addClass('gb-button')
             .on('click', params.click);
+
         if (params.title != undefined) {
             button.attr('title', params.title);
         }
@@ -71,7 +70,6 @@ $.widget('gb.grrr', {
 
         if (params.label != undefined) {
             button.append(params.label);
-
         }
 
         return button;
@@ -122,10 +120,10 @@ $.widget('gb.grrr', {
         }
 
         footer.append($('<div />').addClass('gb-pages'))
-            .append(this._clearDiv)
+            .append(this.clearDiv)
             .append(buttonBox)
             .append($("<div />").addClass('gb-pagination'))
-            .append(this._clearDiv);
+            .append(this.clearDiv);
         this.element.append(footer);
     },
     _createHeader: function() {
@@ -143,18 +141,17 @@ $.widget('gb.grrr', {
 
         if (this.options.header.title != undefined) {
             var title = $('<div />').addClass('gb-head-title').html(this.options.header.title);
-            header.append(title).append(this._clearDiv);
+            header.append(title).append(this.clearDiv);
         }
 
         header.append(buttonBox)
             .append($("<div />").addClass('gb-pagination'))
-            .append(this._clearDiv)
+            .append(this.clearDiv)
             .append($('<div />').addClass('gb-pages'))
-            .append(this._clearDiv);
+            .append(this.clearDiv);
         this.element.append(header);
     },
     _createPagination: function() {
-
         var self = this;
 
         if (this.state.totalPages <= 1) {
@@ -163,7 +160,6 @@ $.widget('gb.grrr', {
 
         var pagination = $('<div/>').attr('class', 'gb-pagination');
         var ul = $('<ul />');
-
         var el = $('<li />');
 
         if (this.state.page > 1) {
@@ -245,9 +241,7 @@ $.widget('gb.grrr', {
         var headTr = $('<tr />');
         headTr.addClass('gb-data-table-header-row');
         $.each(this.options.columns, function(index, column) {
-
             column = $.extend({}, self.columnDefaults, column);
-
             var th = $('<th />').attr('data-id', column.id);
 
             if (column.required) {
@@ -310,7 +304,7 @@ $.widget('gb.grrr', {
 
         this.element.append(table);
     },
-    _drawRows: function() {
+    _drawRows: function(data) {
         var self = this;
         var columns = [];
         var tableBody = $('tbody', this.element);
@@ -321,7 +315,7 @@ $.widget('gb.grrr', {
             columns.push($(this).attr('data-id'));
         });
 
-        $.each(this._gridData.rows, function(index, row){
+        $.each(data.rows, function(index, row){
             var tr = $('<tr />');
             tr.addClass('gb-data-row')
             if (self.options.alternatingRows && !(index % 2)) {
@@ -384,26 +378,12 @@ $.widget('gb.grrr', {
             if (!(typeof data.total === 'number' && data.total % 1 == 0)) {
                 throw "grrr, total is not an integer";
             }
+
             self.state.rows = data.total;
             self.state.totalPages = Math.ceil(self.state.rows / self.options.rowsPerPage);
 
-            self._gridData = data;
-            if (self._initialized) {
-                self._drawRows();
-            } else {
-                self._drawTable();
-            }
+            self._drawRows(data);
         });
-    },
-    _drawTable: function() {
-        this._createHeader();
-        this._createTable();
-        this._createFooter();
-
-        this._drawRows();
-
-        this._createEvents();
-        this._initialized = true;
     },
 
     // public methods
@@ -413,8 +393,16 @@ $.widget('gb.grrr', {
     getSelectedRow: function() {
 
     },
-    reloadGrid: function() {
+    goToPage: function(page) {
+        if (page > this.state.totalPages) {
+            this.state.page = this.state.totalPages;
+        } else if (page < 1) {
+            this.state.page = 1;
+        } else {
+            this.state.page = page;
+        }
 
+        this._getRows();
     },
     nextPage: function() {
         if (this.state.page < this.state.totalPages) {
@@ -428,16 +416,8 @@ $.widget('gb.grrr', {
             this._getRows();
         }
     },
-    goToPage: function(page) {
-        if (page > this.state.totalPages) {
-            this.state.page = this.state.totalPages;
-        } else if (page < 1) {
-            this.state.page = 1;
-        } else {
-            this.state.page = page;
-        }
+    reloadGrid: function() {
 
-        this._getRows();
     },
     toggleFilters: function()
     {
