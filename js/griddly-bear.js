@@ -2,28 +2,26 @@
 
 $.widget('gb.grrr', {
 
-    options: {
-        columns: null,
-        exportable: false,
-        filters: {},
-        footer: null,
-        header: null,
-        onRowClick: function(){
-
-        },
-        rowsPerPage: 10,
-        rowsPerPageOptions: [10],
-        sort: {},
-        url: null
-    },
-
+    clearDiv: '<div class="gb-clear-both"></div>',
     columnDefaults: {
         primary: false,
         hidden: false,
         sortable: true,
         filterable: true
     },
-
+    options: {
+        columns: {},
+        exportable: false,
+        filters: {},
+        footer: null,
+        header: null,
+        onRowClick: function(){},
+        rowsPerPage: 10,
+        rowsPerPageOptions: [10],
+        sort: {},
+        url: null,
+        alternatingRows: true
+    },
     state: {
         page: 1,
         rows: 0,
@@ -33,19 +31,15 @@ $.widget('gb.grrr', {
 
     // widget methods
     _create: function() {
+        this._super();
+
         // put creation code here
         this._createHeader();
         this._createTable();
         this._createFooter();
-
         this._createEvents();
 
-        this._getRows()
-
-        this._super();
-    },
-    _init: function() {
-        this._super('_init');
+        this._getRows();
     },
     _setOption: function(key, value) {
         this._super(key, value);
@@ -57,6 +51,29 @@ $.widget('gb.grrr', {
     },
 
     // private methods
+    _createButton: function(params) {
+        if (params.click == undefined || !$.isFunction(params.click)) {
+            return false;
+        }
+
+        var button = $("<button />")
+            .addClass('gb-button')
+            .on('click', params.click);
+
+        if (params.title != undefined) {
+            button.attr('title', params.title);
+        }
+
+        if (params.icon != undefined) {
+            button.append($("<img />").attr('src', params.icon).addClass('gb-button-icon'));
+        }
+
+        if (params.label != undefined) {
+            button.append(params.label);
+        }
+
+        return button;
+    },
     _createEvents: function() {
         var self = this;
 
@@ -82,8 +99,7 @@ $.widget('gb.grrr', {
             sort[columnId] = order;
 
             self.option('sort', sort);
-        })
-        .on('change', 'input.filter', function() {
+        }).on('change', 'input.filter', function() {
             var filters = self.options.filters;
             filters[$(this).attr('data-id')] = $(this).val();
 
@@ -91,21 +107,52 @@ $.widget('gb.grrr', {
         });
     },
     _createFooter: function() {
-        var footer = $('<div />').attr('class', 'gb-footer');
+        var self = this;
+        var footer = $('<div />').addClass('gb-footer');
+        var buttonBox = $("<div />").addClass('gb-button-box');
 
-        if (this.state.totalPages > 1) {
-            footer.append(this._createPagination());
+        var buttons = this.options.footer.buttons;
+        if (buttons != undefined && buttons.length > 0) {
+            $.each(buttons, function(index, value){
+                var btn = self._createButton(value);
+                buttonBox.append(btn);
+            });
         }
 
+        footer.append($('<div />').addClass('gb-pages'))
+            .append(this.clearDiv)
+            .append(buttonBox)
+            .append($("<div />").addClass('gb-pagination'))
+            .append(this.clearDiv);
         this.element.append(footer);
     },
     _createHeader: function() {
-        this.element.append('<div></div>');
+        var self = this;
+        var header = $('<div />').addClass('gb-header');
+        var buttonBox = $("<div />").addClass('gb-button-box');
+
+        var buttons = this.options.header.buttons;
+        if (buttons != undefined && buttons.length > 0) {
+            $.each(buttons, function(index, value){
+                var btn = self._createButton(value);
+                buttonBox.append(btn);
+            });
+        }
+
+        if (this.options.header.title != undefined) {
+            var title = $('<div />').addClass('gb-head-title').html(this.options.header.title);
+            header.append(title).append(this.clearDiv);
+        }
+
+        header.append(buttonBox)
+            .append($("<div />").addClass('gb-pagination'))
+            .append(this.clearDiv)
+            .append($('<div />').addClass('gb-pages'))
+            .append(this.clearDiv);
+        this.element.append(header);
     },
     _createPagination: function() {
         var self = this;
-        // Remove any existing paginator:
-        $('div.gb-footer div.gb-pagination', this.element).remove();
 
         if (this.state.totalPages <= 1) {
             return;
@@ -113,7 +160,6 @@ $.widget('gb.grrr', {
 
         var pagination = $('<div/>').attr('class', 'gb-pagination');
         var ul = $('<ul />');
-
         var el = $('<li />');
 
         if (this.state.page > 1) {
@@ -167,6 +213,21 @@ $.widget('gb.grrr', {
 
         pagination.append(ul);
 
+        var pages = $("<div />")
+            .addClass('db-pages-text')
+            .html('Page ' + this.state.page + ' of ' + this.state.totalPages);
+
+        if (this.options.footer.pagination == undefined || this.options.footer.pagination) {
+            $('div.gb-footer div.gb-pagination', this.element).before(pagination);
+            $('div.gb-footer div.gb-pagination:last', this.element).remove();
+            $('div.gb-footer div.gb-pages').html('').append(pages);
+        }
+        if (this.options.header.pagination != undefined && this.options.header.pagination) {
+            $('div.gb-header div.gb-pagination', this.element).after(pagination.clone());
+            $('div.gb-header div.gb-pagination:first', this.element).remove();
+            $('div.gb-header div.gb-pages').html('').append(pages.clone());
+        }
+
         return pagination;
     },
     _createTable: function() {
@@ -178,10 +239,10 @@ $.widget('gb.grrr', {
 
         // create header row
         var headTr = $('<tr />');
+        headTr.addClass('gb-data-table-header-row');
         $.each(this.options.columns, function(index, column) {
             column = $.extend({}, self.columnDefaults, column);
-
-            var th = $('<th />');
+            var th = $('<th />').attr('data-id', column.id);
 
             if (column.required) {
                 th.attr('data-required', 'true');
@@ -219,12 +280,12 @@ $.widget('gb.grrr', {
 
             if (column.filterable) {
                 th.append(
-                    $('<input/>').attr({
-                        type: 'text',
-                        class: 'filter hidden',
-                        name: 'filter[]',
-                        "data-id": column.id
-                    })
+                    $('<input />').attr({
+                        'type': 'text',
+                        'name': 'filter[]',
+                        'data-id': column.id,
+                        'placeholder': 'Search...'
+                    }).addClass('filter gb-hidden')
                 );
             }
 
@@ -238,8 +299,8 @@ $.widget('gb.grrr', {
 
         thead.append(headTr);
         table.append(thead);
-
         table.append(tbody);
+        table.addClass('gb-data-table');
 
         this.element.append(table);
     },
@@ -255,16 +316,30 @@ $.widget('gb.grrr', {
         });
 
         $.each(data.rows, function(index, row){
-            tableBody.append('<tr></tr>');
-            var lastRow = $('tbody tr', self.element).last();
+            var tr = $('<tr />');
+            tr.addClass('gb-data-row')
+            if (self.options.alternatingRows && !(index % 2)) {
+                tr.addClass('alt');
+            }
+            tableBody.append(tr);
+            var lastRow = $('tbody tr.gb-data-row', self.element).last();
 
             $.each(columns, function(index, column) {
-                lastRow.append('<td>' + row[column] + '</td>');
+                var td = $('<td />');
+                td.addClass('gb-data-cell').html(row[column]);
+                for (var i in self.options.columns) {
+                    if (self.options.columns[i].id == column &&
+                        self.options.columns[i].primary != undefined &&
+                        self.options.columns[i].primary) {
+                        td.attr('data-primary', 'true');
+                    }
+                }
+                lastRow.append(td);
             });
 
         });
 
-        $('div.gb-footer', this.element).append(this._createPagination());
+        this._createPagination();
     },
     _getRows: function() {
         var self = this;
@@ -318,8 +393,16 @@ $.widget('gb.grrr', {
     getSelectedRow: function() {
 
     },
-    reloadGrid: function() {
+    goToPage: function(page) {
+        if (page > this.state.totalPages) {
+            this.state.page = this.state.totalPages;
+        } else if (page < 1) {
+            this.state.page = 1;
+        } else {
+            this.state.page = page;
+        }
 
+        this._getRows();
     },
     nextPage: function() {
         if (this.state.page < this.state.totalPages) {
@@ -333,16 +416,8 @@ $.widget('gb.grrr', {
             this._getRows();
         }
     },
-    goToPage: function(page) {
-        if (page > this.state.totalPages) {
-            this.state.page = this.state.totalPages;
-        } else if (page < 1) {
-            this.state.page = 1;
-        } else {
-            this.state.page = page;
-        }
+    reloadGrid: function() {
 
-        this._getRows();
     },
     toggleFilters: function()
     {
