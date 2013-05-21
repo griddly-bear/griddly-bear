@@ -344,6 +344,7 @@ $.widget('gb.grrr', {
     _getRows: function() {
         var self = this;
         var params = {
+            columns: [],
             filters: {},
             page: this.state.page,
             rowsPerPage: this.options.rowsPerPage,
@@ -354,20 +355,19 @@ $.widget('gb.grrr', {
             throw "grrr, dude you got no url";
         }
 
-        var columnIds = [];
         $.each(this.options.columns, function(index, column) {
-            columnIds.push(column.id);
+            params.columns.push(column.id);
         });
 
         $.each(this.options.sort, function(sortColumn, order) {
-            if ($.inArray(sortColumn, columnIds) > -1 && typeof order === 'string'
+            if ($.inArray(sortColumn, params.columns) > -1 && typeof order === 'string'
             && (order.toUpperCase() === 'ASC' || order.toUpperCase() === 'DESC')) {
                 params['sort'][sortColumn] = order.toUpperCase();
             }
         });
 
         $.each(this.options.filters, function(filterColumn, filter) {
-            if ($.inArray(filterColumn, columnIds) > -1
+            if ($.inArray(filterColumn, params.columns) > -1
             && (typeof filter === 'string' || typeof filter === 'number' || typeof filter === 'boolean')) {
                 params['filters'][filterColumn] = filter;
             }
