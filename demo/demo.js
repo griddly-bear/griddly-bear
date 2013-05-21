@@ -14,7 +14,7 @@ $(function() {
             }
         ],
         header: {
-            pagination:true,  // default: false
+            pagination: true,  // default: false
             title: 'Grid Title',
             buttons: [
                 {
