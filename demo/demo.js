@@ -2,7 +2,6 @@ $(function() {
 
     $('#my-grid').grrr({
         url: "demo.json",
-        alternatingRows: true,
         columns: [
             {
                 id: "name.first",
