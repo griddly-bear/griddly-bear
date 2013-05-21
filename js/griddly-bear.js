@@ -21,14 +21,11 @@ $.widget('gb.grrr', {
         page: 1,
         rows: 0,
         totalPages: 1,
-        lastWidth: 0,  // Compared to the current width to determine expanding or contracting.
         isResizing: false,  // So we don't get race conditions.
-        padding: false // How much padding we have on the cells.
     },
 
     // widget methods
     _create: function() {
-        var self = this;
         // put creation code here
         this._createHeader();
         this._createTable();
@@ -63,8 +60,6 @@ $.widget('gb.grrr', {
 
     },
     _createTable: function() {
-        var self = this;
-
         var table = $('<table />');
         var thead = $('<thead />');
         var tbody = $('<tbody />');
@@ -103,7 +98,6 @@ $.widget('gb.grrr', {
         table.append(thead);
 
         table.append(tbody);
-
         this.element.append(table);
     },
     _drawRows: function(data) {
@@ -122,9 +116,10 @@ $.widget('gb.grrr', {
             var lastRow = $('tbody tr', self.element).last();
 
             $.each(columns, function(index, column) {
-                lastRow.append('<td data-id="' + column + '">' + row[column] + '</td>');
+                lastRow.append('<td data-id="' + column +
+                    '"><span class="gb-vertical-label">' +
+                    self.options.columns[index].title + ': </span>' + row[column] + '</td>');
             });
-
         });
         self._onResize();
     },
@@ -153,84 +148,70 @@ $.widget('gb.grrr', {
 
     _onResize: function() {
         var self = this;
-        self.state.isResizing = true;
         var viewPortWidth = self.element.width();
+        self.state.isResizing = true;  // Prevent multi-resize events on race conditions.
         var table = self.element.children('table');
         var isVerticalLayout = false;
-
-        var minWidthTotal = self._getMinWidthTotal();
-
-        if (self.state.padding == false) {
-            // Get padding and margin of the cells.
-            //                       thead              tr                 th
-            var firstCellDom = table.children(":first").children(":first").children(":first");
-            self.state.padding = (parseInt(firstCellDom.css('padding').replace("px", "")) +
-                parseInt(firstCellDom.css('margin').replace("px", ""))) * 2;
+        var layoutChangeWidth = self._getLayoutChangeWidth();
+        var minWidthTotal = false;
+        if (self.element.hasClass('gb-layout-vertical')) {
+            minWidthTotal = layoutChangeWidth;
+        } else {
+            minWidthTotal = self._getMinWidthTotal();
         }
 
-        if (viewPortWidth < table.width()) {
-            console.log("asdfasdf");
+        if (viewPortWidth < table.width()) { // View is shrinking.
             while (viewPortWidth < table.width()) {
                 var foundRemovable = false;
                 $.each(this.options.columns.reverse(), function(index, column) {
                     var columnHeader = $('.gb-grid th[data-id="' + column.id + '"]');
-                    if (typeof columnHeader.attr("data-required") == 'undefined' && columnHeader.is(":visible")) {
-                        console.log(column.title);
-                        $('.gb-grid *[data-id="' + column.id + '"]').hide();
+                    if (typeof columnHeader.attr("data-required") == 'undefined' &&
+                        columnHeader.hasClass("gb-hidden") == false) {
+                        $('.gb-grid *[data-id="' + column.id + '"]').addClass("gb-hidden");
                         foundRemovable = true;
-                        return false;
+                        return false; // Break from each
                     }
                 });
-                minWidthTotal = self._getMinWidthTotal();
-                if (foundRemovable == false) {
+                if (foundRemovable == false) { // Nothing to hide? Switch to vertical.
                     isVerticalLayout = true;
                     break;
-                } else {
-                    console.log("standard");
                 }
             }
-        } else if (minWidthTotal < table.width()) {
-            console.log("ftttfttt");
+        } else if (table.width() >= minWidthTotal) { // View is growing.
             var spaceToFill = table.width() - minWidthTotal;
-            console.log("sp: " + spaceToFill);
             $.each(this.options.columns, function(index, column) {
-                if (!$('.gb-grid th[data-id="' + column.id + '"]').is(":visible") &&
-                    (column.minWidth + self.state.padding) < spaceToFill) {
-                    $('.gb-grid *[data-id="' + column.id + '"]').show();
-                    return false;
+                if ($('.gb-grid th[data-id="' + column.id + '"]').hasClass("gb-hidden") &&
+                    column.minWidth < spaceToFill) {
+                    $('.gb-grid *[data-id="' + column.id + '"]').removeClass("gb-hidden");
+                    return false; // Break from each
                 }
             });
-            minWidthTotal = self._getMinWidthTotal();
-        } else {
-            console.log("meow");
+        } else if (minWidthTotal == layoutChangeWidth && table.width() <= minWidthTotal ) { // View is at minimum.
             isVerticalLayout = true;
         }
-        console.log("vp: " + viewPortWidth);
-        console.log("mw: " + minWidthTotal);
-        console.log("tw: " + table.width());
 
-        if (isVerticalLayout) {
-            self.element.addClass('gb-layout-vertical');
-        } else {
-            self.element.removeClass('gb-layout-vertical');
-        }
+        self.element.toggleClass('gb-layout-vertical', isVerticalLayout);
 
         self.state.isResizing = false;
     },
 
-    _getMinWidthTotal: function()
+    _getLayoutChangeWidth: function()
     {
-        var self = this;
         var minWidthTotal = 0;
         $.each(this.options.columns, function(index, column) {
-            if (self.element.hasClass('gb-layout-vertical')) {
-                if (typeof $('.gb-grid th[data-id="' + column.id + '"]').attr("data-required") != 'undefined') {
-                    minWidthTotal += (column.minWidth + self.state.padding + 10);
-                }
-            } else {
-                if ($('.gb-grid th[data-id="' + column.id + '"]').is(":visible")) {
-                    minWidthTotal += (column.minWidth + self.state.padding + 10);
-                }
+            if (typeof $('.gb-grid th[data-id="' + column.id + '"]').attr("data-required") != 'undefined') {
+                minWidthTotal += column.minWidth;
+            }
+        });
+        return minWidthTotal;
+    },
+
+    _getMinWidthTotal: function()
+    {
+        var minWidthTotal = 0;
+        $.each(this.options.columns, function(index, column) {
+            if ($('.gb-grid th[data-id="' + column.id + '"]').hasClass("gb-hidden") == false) {
+                minWidthTotal += column.minWidth;
             }
         });
         return minWidthTotal;

@@ -1,28 +1,38 @@
 .gb-grid {
     width: 100%;
-    background-color: #66FFCC;
     overflow: hidden;
 }
 .gb-grid table {
     width: 100%;
-}
-.gb-grid table thead tr th {
-    background-color: silver;
+    padding: 0px;
+    margin: 0px;
 }
 
+.gb-vertical-label,
+.gb-hidden {
+    display: none;
+}
+
+.gb-layout-vertical table,
+.gb-layout-vertical thead,
+.gb-layout-vertical tbody,
+.gb-layout-vertical th,
+.gb-layout-vertical tr,
+.gb-layout-vertical td {
+    display: block;
+}
+
+.gb-layout-vertical td {
+    display: block;
+    position: relative;
+    width: 100%;
+}
+
+.gb-layout-vertical .gb-hidden,
 .gb-layout-vertical thead {
     display: none;
 }
 
-.gb-layout-vertical tr {
-    display: inline;
-    clear: both;
-}
-
-.gb-layout-vertical td {
+.gb-layout-vertical .gb-vertical-label {
     display: inline;
 }
-.gb-layout-vertical td:after {
-    clear: both;
-}
-

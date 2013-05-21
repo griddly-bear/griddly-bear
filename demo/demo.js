@@ -1,4 +1,4 @@
-$(function() {
+$(document).ready(function() {
 
     $('#my-grid').grrr({
         url: "demo.json",
