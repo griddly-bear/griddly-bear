@@ -1,7 +1,7 @@
 (function($) {
 
 $.widget('gb.grrr', {
-
+    // properties
     clearDiv: '<div class="gb-clear-both"></div>',
     columnDefaults: {
         primary: false,
@@ -446,7 +446,6 @@ $.widget('gb.grrr', {
 
         self.state.isResizing = false;
     },
-
     _getLayoutChangeWidth: function()
     {
         var self = this;
@@ -459,7 +458,6 @@ $.widget('gb.grrr', {
         });
         return minWidthTotal;
     },
-
     _getMinWidthTotal: function()
     {
         var self = this;
@@ -472,7 +470,6 @@ $.widget('gb.grrr', {
         });
         return minWidthTotal;
     },
-
     _getExtraWidth: function(element)
     {
         var width = 0;
