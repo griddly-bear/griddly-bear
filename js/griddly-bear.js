@@ -1,7 +1,7 @@
 (function($) {
 
 $.widget('gb.grrr', {
-
+    // properties
     clearDiv: '<div class="gb-clear-both"></div>',
     columnDefaults: {
         primary: false,
@@ -25,6 +25,7 @@ $.widget('gb.grrr', {
     state: {
         page: 1,
         rows: 0,
+        isResizing: false,  // So we don't get race conditions.
         totalPages: 0,
         filtersOn: false
     },
@@ -76,6 +77,12 @@ $.widget('gb.grrr', {
     },
     _createEvents: function() {
         var self = this;
+
+        $(window).resize(function() {
+            if (self.state.isResizing == false) {
+                self._onResize();
+            }
+        });
 
         $(this.element).on('click', 'div.gb-pagination a.gb-next', function(e) {
             e.preventDefault();
@@ -237,6 +244,8 @@ $.widget('gb.grrr', {
         var thead = $('<thead />');
         var tbody = $('<tbody />');
 
+        this.element.addClass("gb-grid");
+
         // create header row
         var headTr = $('<tr />');
         headTr.addClass('gb-data-table-header-row');
@@ -301,8 +310,8 @@ $.widget('gb.grrr', {
         table.append(thead);
         table.append(tbody);
         table.addClass('gb-data-table');
-
         this.element.append(table);
+        this._onResize();
     },
     _drawRows: function(data) {
         var self = this;
@@ -326,7 +335,13 @@ $.widget('gb.grrr', {
 
             $.each(columns, function(index, column) {
                 var td = $('<td />');
-                td.addClass('gb-data-cell').html(row[column]);
+                var label = $('<span />');
+                label.addClass('gb-vertical-label').html(self.options.columns[index].title + ": ");
+                td
+                    .addClass('gb-data-cell')
+                    .attr('data-id', column)
+                    .append(label)
+                    .append(row[column]);
                 for (var i in self.options.columns) {
                     if (self.options.columns[i].id == column &&
                         self.options.columns[i].primary != undefined &&
@@ -336,7 +351,6 @@ $.widget('gb.grrr', {
                 }
                 lastRow.append(td);
             });
-
         });
 
         this._createPagination();
@@ -384,6 +398,88 @@ $.widget('gb.grrr', {
 
             self._drawRows(data);
         });
+    },
+    _onResize: function() {
+        var self = this;
+        var viewPortWidth = self.element.width();
+        self.state.isResizing = true;  // Prevent multi-resize events on race conditions.
+        var table = self.element.children('table');
+        var isVerticalLayout = false;
+        var layoutChangeWidth = self._getLayoutChangeWidth();
+        var minWidthTotal = false;
+        if (self.element.hasClass('gb-layout-vertical')) {
+            minWidthTotal = layoutChangeWidth;
+        } else {
+            minWidthTotal = self._getMinWidthTotal();
+        }
+        if (viewPortWidth < table.width()) { // View is shrinking.
+            while (viewPortWidth < table.width()) {
+                var foundRemovable = false;
+                $.each(this.options.columns.reverse(), function(index, column) {
+                    var columnHeader = $('.gb-grid th[data-id="' + column.id + '"]');
+                    if (typeof columnHeader.attr("data-required") == 'undefined' &&
+                        columnHeader.hasClass("gb-hidden-column") == false) {
+                        $('.gb-grid *[data-id="' + column.id + '"]').addClass("gb-hidden-column");
+                        foundRemovable = true;
+                        return false; // Break from each
+                    }
+                });
+                if (foundRemovable == false) { // Nothing to hide? Switch to vertical.
+                    isVerticalLayout = true;
+                    break;
+                }
+            }
+        } else if (table.width() >= minWidthTotal) { // View is growing.
+            var spaceToFill = table.width() - minWidthTotal;
+            $.each(this.options.columns, function(index, column) {
+                if ($('.gb-grid th[data-id="' + column.id + '"]').hasClass("gb-hidden-column") &&
+                    column.minWidth < spaceToFill) {
+                    $('.gb-grid *[data-id="' + column.id + '"]').removeClass("gb-hidden-column");
+                    return false; // Break from each
+                }
+            });
+        } else if (minWidthTotal == layoutChangeWidth && table.width() <= minWidthTotal ) { // View is at minimum.
+            isVerticalLayout = true;
+        }
+
+        self.element.toggleClass('gb-layout-vertical', isVerticalLayout);
+
+        self.state.isResizing = false;
+    },
+    _getLayoutChangeWidth: function()
+    {
+        var self = this;
+        var minWidthTotal = 0;
+        $.each(this.options.columns, function(index, column) {
+            var columnDom = $('.gb-grid th[data-id="' + column.id + '"]');
+            if (typeof columnDom.attr("data-required") != 'undefined') {
+                minWidthTotal += column.minWidth + self._getExtraWidth(columnDom);
+            }
+        });
+        return minWidthTotal;
+    },
+    _getMinWidthTotal: function()
+    {
+        var self = this;
+        var minWidthTotal = 0;
+        $.each(this.options.columns, function(index, column) {
+            var columnDom = $('.gb-grid th[data-id="' + column.id + '"]');
+            if (columnDom.hasClass("gb-hidden-column") == false) {
+                minWidthTotal += column.minWidth + self._getExtraWidth(columnDom);
+            }
+        });
+        return minWidthTotal;
+    },
+    _getExtraWidth: function(element)
+    {
+        var width = 0;
+        width += parseInt(element.css("padding-left".replace("px", "")));
+        width += parseInt(element.css("padding-right").replace("px", ""));
+        width += parseInt(element.css("margin-left").replace("px", ""));
+        width += parseInt(element.css("margin-right").replace("px", ""));
+        width += parseInt(element.css("borderLeftWidth").replace("px", ""));
+        width += parseInt(element.css("borderRightWidth").replace("px", ""));
+        return width;
     },
 
     // public methods

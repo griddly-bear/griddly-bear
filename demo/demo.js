@@ -6,11 +6,15 @@ $(function() {
             {
                 id: "name.first",
                 title: "First Name",
+                minWidth: 200,
+                required: true,
                 primary: true
             },
             {
                 id: "name.last",
-                title: "Last Name"
+                title: "Last Name",
+                minWidth: 200,
+                required: true
             }
         ],
         header: {
