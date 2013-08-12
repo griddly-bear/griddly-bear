@@ -34,8 +34,6 @@ $.widget('gb.grrr', {
     _create: function() {
         this._super();
 
-
-
         // put creation code here
         this._createHeader();
         this._createTable();
@@ -44,7 +42,6 @@ $.widget('gb.grrr', {
 
         this._getRows();
     },
-
     _setOption: function(key, value) {
         this._super(key, value);
 
@@ -402,7 +399,6 @@ $.widget('gb.grrr', {
             self._drawRows(data);
         });
     },
-
     _onResize: function() {
         var self = this;
         var viewPortWidth = self.element.width();
