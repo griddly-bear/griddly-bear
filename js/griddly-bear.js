@@ -1,7 +1,7 @@
 (function($) {
 
 $.widget('gb.grrr', {
-
+    // properties
     clearDiv: '<div class="gb-clear-both"></div>',
     columnDefaults: {
         primary: false,
@@ -34,8 +34,6 @@ $.widget('gb.grrr', {
     _create: function() {
         this._super();
 
-
-
         // put creation code here
         this._createHeader();
         this._createTable();
@@ -44,7 +42,6 @@ $.widget('gb.grrr', {
 
         this._getRows();
     },
-
     _setOption: function(key, value) {
         this._super(key, value);
 
@@ -402,7 +399,6 @@ $.widget('gb.grrr', {
             self._drawRows(data);
         });
     },
-
     _onResize: function() {
         var self = this;
         var viewPortWidth = self.element.width();
@@ -450,7 +446,6 @@ $.widget('gb.grrr', {
 
         self.state.isResizing = false;
     },
-
     _getLayoutChangeWidth: function()
     {
         var self = this;
@@ -463,7 +458,6 @@ $.widget('gb.grrr', {
         });
         return minWidthTotal;
     },
-
     _getMinWidthTotal: function()
     {
         var self = this;
@@ -476,7 +470,6 @@ $.widget('gb.grrr', {
         });
         return minWidthTotal;
     },
-
     _getExtraWidth: function(element)
     {
         var width = 0;
