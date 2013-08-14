@@ -11,7 +11,6 @@ $.widget('gb.grrr', {
     },
     options: {
         columns: {},
-        exportable: false,
         filters: {},
         footer: null,
         header: null,
