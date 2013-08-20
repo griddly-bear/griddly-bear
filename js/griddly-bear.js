@@ -112,10 +112,10 @@ $.widget('gb.grrr', {
 
             self.option('filters', filters);
         });
-    },
-    _createTouchEvents: function() {
+
+        // Touch events
         var self = this;
-        var rows = $('.gb-grid table tbody tr');
+        var tbody = $('.gb-grid table tbody');
         var onDown = function(target) {
             clearTimeout(self.downTimer);
             self.cancelClick = false;
@@ -134,15 +134,15 @@ $.widget('gb.grrr', {
         var el = document.createElement('div');
         el.setAttribute('ongesturestart', 'return;');
         if (typeof el.ongesturestart === "function") {
-            rows.bind('touchstart', function() {
+            $(this.element).on('touchstart', 'tr', function() {
                 onDown($(this));
-            }).bind('touchend', function(){
+            }).on('touchend', 'tr', function(){
                 onUp($(this));
             });
         } else {
-            rows.bind('mousedown', function() {
+            $(this.element).on('mousedown', 'tr', function() {
                 onDown($(this));
-            }).bind('mouseup', function(){
+            }).on('mouseup', 'tr', function(){
                 onUp($(this));
             });
         }
@@ -436,7 +436,6 @@ $.widget('gb.grrr', {
             self.state.totalPages = Math.ceil(self.state.rows / self.options.rowsPerPage);
             self._drawRows(data);
             self._onResize();
-            self._createTouchEvents();
         });
     },
     _onResize: function() {
