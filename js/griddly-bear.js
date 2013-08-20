@@ -381,14 +381,21 @@ $.widget('gb.grrr', {
 
             self.state.rows = data.total;
             self.state.totalPages = Math.ceil(self.state.rows / self.options.rowsPerPage);
-
+            self.rowData = data;
             self._drawRows(data);
         });
     },
 
     // public methods
-    getRowData: function() {
-
+    getRowData: function(index) {
+        if (typeof self.rowData != 'undefined') {
+            if (typeof index != 'undefined' && index != null) {
+                return self.rowData[index];
+            } else if (typeof self.selectedIndex != 'undefined' && self.selectedIndex != null) {
+                return self.rowData[self.selectedIndex];
+            }
+        }
+        return null;
     },
     getSelectedRow: function() {
 
