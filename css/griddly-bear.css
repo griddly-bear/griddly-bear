@@ -1,9 +1,115 @@
-.gb-clear-both {
-    clear:both;
+.gb-grid {
+    width: 100%;
+    overflow: hidden;
+}
+.gb-grid table {
+    width: 100%;
+    padding: 0px;
+    margin: 0px;
 }
 
+.gb-vertical-label {
+    display: none;
+}
+
+.gb-layout-vertical table,
+.gb-layout-vertical thead,
+.gb-layout-vertical tbody,
+.gb-layout-vertical th,
+.gb-layout-vertical tr,
+.gb-layout-vertical td {
+    display: block;
+}
+
+.gb-layout-vertical td {
+    display: block;
+    position: relative;
+    width: 100%;
+}
+
+.gb-layout-vertical thead {
+    display: none;
+}
+
+.gb-layout-vertical .gb-vertical-label {
+    display: inline;
+}
+.gb-layout-vertical .gb-hidden,
 .gb-hidden {
     display:none;
+}
+
+.gb-layout-vertical .gb-data-expand .gb-hidden {
+    display: block;
+}
+
+.gb-data-expand td {
+    /*background-color: #FAFAFA !important;*/
+}
+
+.gb-data-expand .gb-data-cell:not(.gb-hidden) {
+    /*border-left: 1px solid #DBDBDB !important;*/
+}
+
+.gb-data-floater {
+    position: absolute;
+    font-family:'Verdana', 'Tahoma', 'Arial';
+    font-size:12px;
+    background: #eee;
+    border: 1px solid #ccc;
+    padding: 10px;
+    border-radius: 8px;
+    box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
+
+}
+/* top */
+.gb-data-floater:before {
+    position: absolute;
+    top: -7px;
+    left: 28px;
+    display: inline-block;
+    border-right: 7px solid transparent;
+    border-bottom: 7px solid #eee;
+    border-left: 7px solid transparent;
+    border-bottom-color: rgba(0, 0, 0, 0.2);
+    content: '';
+}
+
+.gb-data-floater:after {
+    position: absolute;
+    top: -6px;
+    left: 29px;
+    display: inline-block;
+    border-right: 6px solid transparent;
+    border-bottom: 6px solid #eee;
+    border-left: 6px solid transparent;
+    content: '';
+}
+
+/* left */
+.gb-data-floater.left:before {
+    border-top: 7px solid transparent;
+    border-right: 7px solid #eee;
+    border-bottom: 7px solid transparent;
+    border-right-color: rgba(0, 0, 0, 0.2);
+    left: -14px;
+    top: 20px;
+}
+
+.gb-data-floater.left:after {
+    border-top: 6px solid transparent;
+    border-right: 6px solid #eee;
+    border-bottom: 6px solid transparent;
+    left: -12px;
+    top: 21px;
+}
+
+.gb-layout-vertical .gb-data-floater {
+    display: none;
+}
+
+.gb-clear-both {
+    clear:both;
 }
 
 .gb-header {
