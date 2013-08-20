@@ -1,7 +1,7 @@
 (function($) {
 
 $.widget('gb.grrr', {
-
+    // properties
     clearDiv: '<div class="gb-clear-both"></div>',
     columnDefaults: {
         primary: false,
@@ -25,6 +25,7 @@ $.widget('gb.grrr', {
     state: {
         page: 1,
         rows: 0,
+        isResizing: false,  // So we don't get race conditions.
         totalPages: 0,
         filtersOn: false
     },
@@ -77,6 +78,12 @@ $.widget('gb.grrr', {
     _createEvents: function() {
         var self = this;
 
+        $(window).resize(function() {
+            if (self.state.isResizing == false) {
+                self._onResize();
+            }
+        });
+
         $(this.element).on('click', 'div.gb-pagination a.gb-next', function(e) {
             e.preventDefault();
             self.nextPage();
@@ -105,6 +112,40 @@ $.widget('gb.grrr', {
 
             self.option('filters', filters);
         });
+
+        // Touch events
+        var self = this;
+        var tbody = $('.gb-grid table tbody');
+        var onDown = function(target) {
+            clearTimeout(self.downTimer);
+            self.cancelClick = false;
+            self.downTimer = setTimeout(function() {
+                self.cancelClick = true;
+                self._showRowData(target);
+            }, 2000);
+        };
+        var onUp = function(target) {
+            clearTimeout(self.downTimer);
+            if (self.cancelClick == false) {
+                self._hideRowData();
+                self.options.onRowClick(target);
+            }
+        };
+        var el = document.createElement('div');
+        el.setAttribute('ongesturestart', 'return;');
+        if (typeof el.ongesturestart === "function") {
+            $(this.element).on('touchstart', 'tr', function() {
+                onDown($(this));
+            }).on('touchend', 'tr', function(){
+                onUp($(this));
+            });
+        } else {
+            $(this.element).on('mousedown', 'tr', function() {
+                onDown($(this));
+            }).on('mouseup', 'tr', function(){
+                onUp($(this));
+            });
+        }
     },
     _createFooter: function() {
         var self = this;
@@ -237,6 +278,8 @@ $.widget('gb.grrr', {
         var thead = $('<thead />');
         var tbody = $('<tbody />');
 
+        this.element.addClass("gb-grid");
+
         // create header row
         var headTr = $('<tr />');
         headTr.addClass('gb-data-table-header-row');
@@ -301,8 +344,14 @@ $.widget('gb.grrr', {
         table.append(thead);
         table.append(tbody);
         table.addClass('gb-data-table');
-
         this.element.append(table);
+
+        this.element.append(
+            $('<div/>')
+                .addClass('gb-data-floater')
+                .addClass('gb-layout-vertical')
+                .addClass('gb-hidden')
+        );
     },
     _drawRows: function(data) {
         var self = this;
@@ -326,7 +375,13 @@ $.widget('gb.grrr', {
 
             $.each(columns, function(index, column) {
                 var td = $('<td />');
-                td.addClass('gb-data-cell').html(row[column]);
+                var label = $('<span />');
+                label.addClass('gb-vertical-label').html(self.options.columns[index].title + ": ");
+                td
+                    .addClass('gb-data-cell')
+                    .attr('data-id', column)
+                    .append(label)
+                    .append(row[column]);
                 for (var i in self.options.columns) {
                     if (self.options.columns[i].id == column &&
                         self.options.columns[i].primary != undefined &&
@@ -336,9 +391,7 @@ $.widget('gb.grrr', {
                 }
                 lastRow.append(td);
             });
-
         });
-
         this._createPagination();
     },
     _getRows: function() {
@@ -383,9 +436,144 @@ $.widget('gb.grrr', {
             self.state.totalPages = Math.ceil(self.state.rows / self.options.rowsPerPage);
             self.rowData = data;
             self._drawRows(data);
+            self._onResize();
         });
     },
+    _onResize: function() {
+        var self = this;
+        var viewPortWidth = self.element.width();
+        self.state.isResizing = true;  // Prevent multi-resize events on race conditions.
+        var table = self.element.children('table');
+        var isVerticalLayout = false;
+        var layoutChangeWidth = self._getLayoutChangeWidth();
+        var minWidthTotal = false;
+        self._hideRowData();
+        if (self.element.hasClass('gb-layout-vertical')) {
+            minWidthTotal = layoutChangeWidth;
+        } else {
+            minWidthTotal = self._getMinWidthTotal();
+        }
+        if (viewPortWidth < table.width()) { // View is shrinking.
+            while (viewPortWidth < table.width()) {
+                var foundRemovable = false;
+                $.each(this.options.columns.reverse(), function(index, column) {
+                    var columnHeader = $('.gb-grid table thead th[data-id="' + column.id + '"]');
+                    var columnRows = $('.gb-grid table tbody tr td[data-id="' + column.id + '"]');
+                    if (columnHeader.hasClass("gb-hidden") == false) {
+                        if (typeof columnHeader.attr("data-required") == 'undefined') {
+                            foundRemovable = true;
+                        } else if (columnHeader.attr("data-required") == 'false') {
+                            foundRemovable = true;
+                        }
+                        if (foundRemovable) {
+                            columnHeader.addClass("gb-hidden");
+                            columnRows.addClass("gb-hidden");
+                            return false; // Break from each loop
+                        }
+                    }
+                });
+                if (foundRemovable == false) { // Nothing to hide? Switch to vertical.
+                    isVerticalLayout = true;
+                    break;
+                }
+            }
+        } else if (table.width() >= minWidthTotal) { // View is growing.
+            var spaceToFill = table.width() - minWidthTotal;
+            $.each(this.options.columns, function(index, column) {
+                var columnHeader = $('.gb-grid table thead th[data-id="' + column.id + '"]');
+                var columnRows = $('.gb-grid table tbody tr td[data-id="' + column.id + '"]');
+                if (columnHeader.hasClass("gb-hidden") && column.minWidth < spaceToFill) {
+                    columnHeader.removeClass("gb-hidden");
+                    columnRows.removeClass("gb-hidden");
+                    return false; // Break from each
+                }
+            });
+        } else if (minWidthTotal == layoutChangeWidth && table.width() <= minWidthTotal ) { // View is at minimum.
+            isVerticalLayout = true;
+        }
 
+        if (isVerticalLayout == true) {
+            $.each(this.options.columns, function(index, column) {
+                var columnHeader = $('.gb-grid table thead th[data-id="' + column.id + '"]');
+                var columnRows = $('.gb-grid table tbody tr td[data-id="' + column.id + '"]');
+                if (typeof columnHeader.attr("data-required") == 'undefined') {
+                    columnHeader.addClass("gb-hidden");
+                    columnRows.addClass("gb-hidden");
+                } else if (columnHeader.attr("data-required") == 'false') {
+                    columnHeader.addClass("gb-hidden");
+                    columnRows.addClass("gb-hidden");
+                }
+            });
+        }
+        self.element.toggleClass('gb-layout-vertical', isVerticalLayout);
+
+        self.state.isResizing = false;
+    },
+    _getLayoutChangeWidth: function()
+    {
+        var self = this;
+        var minWidthTotal = 0;
+        $.each(this.options.columns, function(index, column) {
+            var columnDom = $('.gb-grid th[data-id="' + column.id + '"]');
+            if (typeof columnDom.attr("data-required") != 'undefined') {
+                minWidthTotal += column.minWidth + self._getExtraWidth(columnDom);
+            }
+        });
+        return minWidthTotal;
+    },
+    _getMinWidthTotal: function()
+    {
+        var self = this;
+        var minWidthTotal = 0;
+        $.each(this.options.columns, function(index, column) {
+            var columnDom = $('.gb-grid th[data-id="' + column.id + '"]');
+            if (columnDom.hasClass("gb-hidden") == false) {
+                minWidthTotal += column.minWidth + self._getExtraWidth(columnDom);
+            }
+        });
+        return minWidthTotal;
+    },
+    _getExtraWidth: function(element)
+    {
+        var width = 0;
+        width += parseInt(element.css("padding-left".replace("px", "")));
+        width += parseInt(element.css("padding-right").replace("px", ""));
+        width += parseInt(element.css("margin-left").replace("px", ""));
+        width += parseInt(element.css("margin-right").replace("px", ""));
+        width += parseInt(element.css("borderLeftWidth").replace("px", ""));
+        width += parseInt(element.css("borderRightWidth").replace("px", ""));
+        return width;
+    },
+    _showRowData: function(target)
+    {
+        var hasHidden = false;
+        $.each(this.options.columns, function(index, column) {
+            var columnHeader = $('.gb-grid table thead th[data-id="' + column.id + '"]');
+            if (columnHeader.hasClass('gb-hidden')) {
+                hasHidden = true;
+                return false;
+            }
+        });
+        if (hasHidden) {
+            var rowData = target.html();
+            var floater = $('.gb-data-floater');
+            floater.html(rowData);
+            floater.children('td').toggleClass('gb-hidden');
+            floater.css('top', target.offset().top + target.height() - 1);
+            if (target.hasClass('gb-data-expand')) {
+                target.removeClass('gb-data-expand');
+            } else {
+                $('.gb-grid table tbody tr').removeClass('gb-data-expand');
+                target.addClass('gb-data-expand');
+            }
+            floater.removeClass('gb-hidden');
+        }
+    },
+    _hideRowData: function()
+    {
+        $('.gb-data-floater').addClass('gb-hidden');
+        $('.gb-grid table tbody tr').removeClass('gb-data-expand');
+    },
     // public methods
     getRowData: function(index) {
         if (typeof self.rowData != 'undefined') {

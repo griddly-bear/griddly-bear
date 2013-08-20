@@ -4,13 +4,35 @@ $(function() {
         url: "demo.json",
         columns: [
             {
+                id: "name.prefix",
+                title: "Prefix",
+                minWidth: 50,
+                required: false
+            },
+            {
                 id: "name.first",
                 title: "First Name",
+                minWidth: 200,
+                required: true,
                 primary: true
             },
             {
+                id: "name.middle",
+                title: "Middle Name",
+                minWidth: 200,
+                required: false
+            },
+            {
                 id: "name.last",
-                title: "Last Name"
+                title: "Last Name",
+                minWidth: 200,
+                required: true
+            },
+            {
+                id: "name.alias",
+                title: "Alias",
+                minWidth: 200,
+                required: false
             }
         ],
         header: {
@@ -55,6 +77,9 @@ $(function() {
                     }
                 }
             ]
+        },
+        onRowClick: function (target) {
+            console.log("Row Clicked: " + target.attr('class'));
         }
     });
 });
