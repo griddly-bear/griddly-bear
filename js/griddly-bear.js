@@ -127,6 +127,7 @@ $.widget('gb.grrr', {
         var onUp = function(target) {
             clearTimeout(self.downTimer);
             if (self.cancelClick == false) {
+                self._hideRowData();
                 self.options.onRowClick(target);
             }
         };
@@ -344,6 +345,13 @@ $.widget('gb.grrr', {
         table.append(tbody);
         table.addClass('gb-data-table');
         this.element.append(table);
+
+        this.element.append(
+            $('<div/>')
+                .addClass('gb-data-floater')
+                .addClass('gb-layout-vertical')
+                .addClass('gb-hidden')
+        );
     },
     _drawRows: function(data) {
         var self = this;
@@ -439,6 +447,7 @@ $.widget('gb.grrr', {
         var isVerticalLayout = false;
         var layoutChangeWidth = self._getLayoutChangeWidth();
         var minWidthTotal = false;
+        self._hideRowData();
         if (self.element.hasClass('gb-layout-vertical')) {
             minWidthTotal = layoutChangeWidth;
         } else {
@@ -537,13 +546,33 @@ $.widget('gb.grrr', {
     },
     _showRowData: function(target)
     {
-        console.log("showing");
-        if (target.hasClass('gb-data-expand')) {
-            target.removeClass('gb-data-expand');
-        } else {
-            $('.gb-grid table tbody tr').removeClass('gb-data-expand');
-            target.addClass('gb-data-expand');
+        var hasHidden = false;
+        $.each(this.options.columns, function(index, column) {
+            var columnHeader = $('.gb-grid table thead th[data-id="' + column.id + '"]');
+            if (columnHeader.hasClass('gb-hidden')) {
+                hasHidden = true;
+                return false;
+            }
+        });
+        if (hasHidden) {
+            var rowData = target.html();
+            var floater = $('.gb-data-floater');
+            floater.html(rowData);
+            floater.children('td').toggleClass('gb-hidden');
+            floater.css('top', target.offset().top + target.height() - 1);
+            if (target.hasClass('gb-data-expand')) {
+                target.removeClass('gb-data-expand');
+            } else {
+                $('.gb-grid table tbody tr').removeClass('gb-data-expand');
+                target.addClass('gb-data-expand');
+            }
+            floater.removeClass('gb-hidden');
         }
+    },
+    _hideRowData: function()
+    {
+        $('.gb-data-floater').addClass('gb-hidden');
+        $('.gb-grid table tbody tr').removeClass('gb-data-expand');
     },
     // public methods
     getRowData: function() {
