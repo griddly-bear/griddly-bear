@@ -113,6 +113,39 @@ $.widget('gb.grrr', {
             self.option('filters', filters);
         });
     },
+    _createTouchEvents: function() {
+        var self = this;
+        var rows = $('.gb-grid table tbody tr');
+        var onDown = function(target) {
+            clearTimeout(self.downTimer);
+            self.cancelClick = false;
+            self.downTimer = setTimeout(function() {
+                self.cancelClick = true;
+                self._showRowData(target);
+            }, 2000);
+        };
+        var onUp = function(target) {
+            clearTimeout(self.downTimer);
+            if (self.cancelClick == false) {
+                self.options.onRowClick(target);
+            }
+        };
+        var el = document.createElement('div');
+        el.setAttribute('ongesturestart', 'return;');
+        if (typeof el.ongesturestart === "function") {
+            rows.bind('touchstart', function() {
+                onDown($(this));
+            }).bind('touchend', function(){
+                onUp($(this));
+            });
+        } else {
+            rows.bind('mousedown', function() {
+                onDown($(this));
+            }).bind('mouseup', function(){
+                onUp($(this));
+            });
+        }
+    },
     _createFooter: function() {
         var self = this;
         var footer = $('<div />').addClass('gb-footer');
@@ -311,7 +344,6 @@ $.widget('gb.grrr', {
         table.append(tbody);
         table.addClass('gb-data-table');
         this.element.append(table);
-        this._onResize();
     },
     _drawRows: function(data) {
         var self = this;
@@ -352,7 +384,6 @@ $.widget('gb.grrr', {
                 lastRow.append(td);
             });
         });
-
         this._createPagination();
     },
     _getRows: function() {
@@ -395,8 +426,9 @@ $.widget('gb.grrr', {
 
             self.state.rows = data.total;
             self.state.totalPages = Math.ceil(self.state.rows / self.options.rowsPerPage);
-
             self._drawRows(data);
+            self._onResize();
+            self._createTouchEvents();
         });
     },
     _onResize: function() {
@@ -416,12 +448,19 @@ $.widget('gb.grrr', {
             while (viewPortWidth < table.width()) {
                 var foundRemovable = false;
                 $.each(this.options.columns.reverse(), function(index, column) {
-                    var columnHeader = $('.gb-grid th[data-id="' + column.id + '"]');
-                    if (typeof columnHeader.attr("data-required") == 'undefined' &&
-                        columnHeader.hasClass("gb-hidden-column") == false) {
-                        $('.gb-grid *[data-id="' + column.id + '"]').addClass("gb-hidden-column");
-                        foundRemovable = true;
-                        return false; // Break from each
+                    var columnHeader = $('.gb-grid table thead th[data-id="' + column.id + '"]');
+                    var columnRows = $('.gb-grid table tbody tr td[data-id="' + column.id + '"]');
+                    if (columnHeader.hasClass("gb-hidden") == false) {
+                        if (typeof columnHeader.attr("data-required") == 'undefined') {
+                            foundRemovable = true;
+                        } else if (columnHeader.attr("data-required") == 'false') {
+                            foundRemovable = true;
+                        }
+                        if (foundRemovable) {
+                            columnHeader.addClass("gb-hidden");
+                            columnRows.addClass("gb-hidden");
+                            return false; // Break from each loop
+                        }
                     }
                 });
                 if (foundRemovable == false) { // Nothing to hide? Switch to vertical.
@@ -432,9 +471,11 @@ $.widget('gb.grrr', {
         } else if (table.width() >= minWidthTotal) { // View is growing.
             var spaceToFill = table.width() - minWidthTotal;
             $.each(this.options.columns, function(index, column) {
-                if ($('.gb-grid th[data-id="' + column.id + '"]').hasClass("gb-hidden-column") &&
-                    column.minWidth < spaceToFill) {
-                    $('.gb-grid *[data-id="' + column.id + '"]').removeClass("gb-hidden-column");
+                var columnHeader = $('.gb-grid table thead th[data-id="' + column.id + '"]');
+                var columnRows = $('.gb-grid table tbody tr td[data-id="' + column.id + '"]');
+                if (columnHeader.hasClass("gb-hidden") && column.minWidth < spaceToFill) {
+                    columnHeader.removeClass("gb-hidden");
+                    columnRows.removeClass("gb-hidden");
                     return false; // Break from each
                 }
             });
@@ -442,6 +483,19 @@ $.widget('gb.grrr', {
             isVerticalLayout = true;
         }
 
+        if (isVerticalLayout == true) {
+            $.each(this.options.columns, function(index, column) {
+                var columnHeader = $('.gb-grid table thead th[data-id="' + column.id + '"]');
+                var columnRows = $('.gb-grid table tbody tr td[data-id="' + column.id + '"]');
+                if (typeof columnHeader.attr("data-required") == 'undefined') {
+                    columnHeader.addClass("gb-hidden");
+                    columnRows.addClass("gb-hidden");
+                } else if (columnHeader.attr("data-required") == 'false') {
+                    columnHeader.addClass("gb-hidden");
+                    columnRows.addClass("gb-hidden");
+                }
+            });
+        }
         self.element.toggleClass('gb-layout-vertical', isVerticalLayout);
 
         self.state.isResizing = false;
@@ -464,7 +518,7 @@ $.widget('gb.grrr', {
         var minWidthTotal = 0;
         $.each(this.options.columns, function(index, column) {
             var columnDom = $('.gb-grid th[data-id="' + column.id + '"]');
-            if (columnDom.hasClass("gb-hidden-column") == false) {
+            if (columnDom.hasClass("gb-hidden") == false) {
                 minWidthTotal += column.minWidth + self._getExtraWidth(columnDom);
             }
         });
@@ -481,7 +535,16 @@ $.widget('gb.grrr', {
         width += parseInt(element.css("borderRightWidth").replace("px", ""));
         return width;
     },
-
+    _showRowData: function(target)
+    {
+        console.log("showing");
+        if (target.hasClass('gb-data-expand')) {
+            target.removeClass('gb-data-expand');
+        } else {
+            $('.gb-grid table tbody tr').removeClass('gb-data-expand');
+            target.addClass('gb-data-expand');
+        }
+    },
     // public methods
     getRowData: function() {
 

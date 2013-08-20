@@ -8,8 +8,7 @@
     margin: 0px;
 }
 
-.gb-vertical-label,
-.gb-hidden-column {
+.gb-vertical-label {
     display: none;
 }
 
@@ -28,7 +27,6 @@
     width: 100%;
 }
 
-.gb-layout-vertical .gb-hidden-column,
 .gb-layout-vertical thead {
     display: none;
 }
@@ -36,9 +34,13 @@
 .gb-layout-vertical .gb-vertical-label {
     display: inline;
 }
-
+.gb-layout-vertical .gb-hidden,
 .gb-hidden {
     display:none;
+}
+
+.gb-layout-vertical .gb-data-expand .gb-hidden {
+    display: block;
 }
 
 .gb-clear-both {
