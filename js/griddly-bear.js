@@ -46,7 +46,7 @@ $.widget('gb.grrr', {
 
         if ($.inArray(key, ['filters', 'sort']) !== -1) {
             this.state.page = 1;
-            this._getRows();
+            this.reloadGrid();
         }
     },
 
@@ -133,15 +133,15 @@ $.widget('gb.grrr', {
         var el = document.createElement('div');
         el.setAttribute('ongesturestart', 'return;');
         if (typeof el.ongesturestart === "function") {
-            $(this.element).on('touchstart', 'tr', function() {
+            $(this.element).on('touchstart', 'tbody tr', function() {
                 onDown($(this));
-            }).on('touchend', 'tr', function(){
+            }).on('touchend', 'tbody tr', function(){
                 onUp($(this));
             });
         } else {
-            $(this.element).on('mousedown', 'tr', function() {
+            $(this.element).on('mousedown', 'tbody tr', function() {
                 onDown($(this));
-            }).on('mouseup', 'tr', function(){
+            }).on('mouseup', 'tbody tr', function(){
                 onUp($(this));
             });
         }
@@ -588,18 +588,18 @@ $.widget('gb.grrr', {
             this.state.page = page;
         }
 
-        this._getRows();
+        this.reloadGrid();
     },
     nextPage: function() {
         if (this.state.page < this.state.totalPages) {
             this.state.page++;
-            this._getRows();
+            this.reloadGrid();
         }
     },
     previousPage: function() {
         if (this.state.page > 1) {
             this.state.page--;
-            this._getRows();
+            this.reloadGrid();
         }
     },
     reloadGrid: function() {
