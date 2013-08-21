@@ -621,7 +621,7 @@ $.widget('gb.grrr', {
         }
     },
     reloadGrid: function() {
-        console.log('reloading');
+
     },
     toggleFilters: function()
     {
