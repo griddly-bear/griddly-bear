@@ -79,7 +79,8 @@ $(function() {
             ]
         },
         onRowClick: function (target) {
-            console.log("Row Clicked: " + target.attr('class'));
+            console.log("Reloading Grid");
+            $('#my-grid').grrr('reloadGrid')
         }
     });
 });
