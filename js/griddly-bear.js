@@ -604,7 +604,9 @@ $.widget('gb.grrr', {
         }
     },
     reloadGrid: function() {
-
+        $('.gb-grid table tbody').html('');
+        $('.gb-grid table thead th').removeClass('gb-hidden');
+        this._getRows();
     },
     toggleFilters: function()
     {
