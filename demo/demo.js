@@ -79,7 +79,7 @@ $(function() {
             ]
         },
         onRowClick: function (target) {
-            console.log("Row Clicked: " + target.attr('class'));
+            console.log($('#my-grid').grrr('getSelectedRow'));
         }
     });
 });

@@ -108,6 +108,10 @@
     display: none;
 }
 
+.gb-row-selected td {
+    background-color: #cccccc;
+}
+
 .gb-clear-both {
     clear:both;
 }
