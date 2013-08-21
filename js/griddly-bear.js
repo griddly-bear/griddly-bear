@@ -17,7 +17,7 @@ $.widget('gb.grrr', {
         header: null,
         onRowClick: function(){},
         rowsPerPage: 10,
-        rowsPerPageOptions: [10],
+        rowsPerPageOptions: [5,10,15],
         sort: {},
         url: null,
         alternatingRows: true
@@ -111,6 +111,11 @@ $.widget('gb.grrr', {
             filters[$(this).attr('data-id')] = $(this).val();
 
             self.option('filters', filters);
+        }).on('change', '.gb-pagination select', function() {
+            var rowsPerPage = $(this).val();
+            $('.gb-pagination select').val(rowsPerPage);
+            self.options.rowsPerPage = rowsPerPage;
+            self.reloadGrid();
         });
 
         // Touch events
@@ -202,6 +207,18 @@ $.widget('gb.grrr', {
         var pagination = $('<div/>').attr('class', 'gb-pagination');
         var ul = $('<ul />');
         var el = $('<li />');
+
+        var rowsPerPageOptions = $('<select />').addClass('gb-rows-per-page');
+        $.each(this.options.rowsPerPageOptions, function(index, value) {
+            var rowOption = $('<option />')
+                .attr('value', value)
+                .text(value);
+            if (value == self.options.rowsPerPage) {
+                rowOption.attr('selected', true);
+            }
+            rowsPerPageOptions.append(rowOption);
+        });
+        pagination.append(rowsPerPageOptions);
 
         if (this.state.page > 1) {
             var a = $('<a/>').attr({
@@ -604,7 +621,7 @@ $.widget('gb.grrr', {
         }
     },
     reloadGrid: function() {
-
+        console.log('reloading');
     },
     toggleFilters: function()
     {
