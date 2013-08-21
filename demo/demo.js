@@ -4,6 +4,13 @@ $(function() {
         url: "demo.json",
         columns: [
             {
+                id: "name.id",
+                title: "Id",
+                minWidth: 25,
+                required: true,
+                primary: true
+            },
+            {
                 id: "name.prefix",
                 title: "Prefix",
                 minWidth: 50,
@@ -79,7 +86,13 @@ $(function() {
             ]
         },
         onRowClick: function (target) {
-            console.log("Row Clicked: " + target.attr('class'));
+            var key = {};
+            key["name.id"] = 12;
+            key['name.first'] = 'Eric';
+            console.log('primary key:');
+            console.log(key);
+            console.log('row data:');
+            console.log($('#my-grid').grrr('getRowData', key));
         }
     });
 });

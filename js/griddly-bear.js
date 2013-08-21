@@ -127,6 +127,7 @@ $.widget('gb.grrr', {
         var onUp = function(target) {
             clearTimeout(self.downTimer);
             if (self.cancelClick == false) {
+                self.selectedRow = target;
                 self._hideRowData();
                 self.options.onRowClick(target);
             }
@@ -134,15 +135,15 @@ $.widget('gb.grrr', {
         var el = document.createElement('div');
         el.setAttribute('ongesturestart', 'return;');
         if (typeof el.ongesturestart === "function") {
-            $(this.element).on('touchstart', 'tr', function() {
+            $(this.element).on('touchstart', 'tbody tr', function() {
                 onDown($(this));
-            }).on('touchend', 'tr', function(){
+            }).on('touchend', 'tbody tr', function(){
                 onUp($(this));
             });
         } else {
-            $(this.element).on('mousedown', 'tr', function() {
+            $(this.element).on('mousedown', 'tbody tr', function() {
                 onDown($(this));
-            }).on('mouseup', 'tr', function(){
+            }).on('mouseup', 'tbody tr', function(){
                 onUp($(this));
             });
         }
@@ -434,6 +435,7 @@ $.widget('gb.grrr', {
 
             self.state.rows = data.total;
             self.state.totalPages = Math.ceil(self.state.rows / self.options.rowsPerPage);
+            self.tableData = data;
             self._drawRows(data);
             self._onResize();
         });
@@ -573,9 +575,80 @@ $.widget('gb.grrr', {
         $('.gb-data-floater').addClass('gb-hidden');
         $('.gb-grid table tbody tr').removeClass('gb-data-expand');
     },
-    // public methods
-    getRowData: function() {
 
+    // public methods
+    getRowData: function(id) {
+        var self = this;
+        if (typeof self.tableData.rows == 'object') {
+            var type = typeof id;
+            if (type == 'undefined') {
+                return self.tableData.rows;
+            } else if (type == 'object') {
+                // Composite Key
+                if (id != null) {
+                    // Validate passed keys
+                    var keysPassed = 0;
+                    var keysNeeded = 0;
+                    $.each(id, function(keyField) {
+                        $.each(self.options.columns, function(index, column) {
+                            if (column.primary == true) {
+                                keysNeeded ++;
+                            }
+                            if(column.id = keyField && column.primary == true) {
+                                keysPassed ++;
+                            }
+                        });
+                    });
+                    if (keysNeeded != keysPassed) {
+                        return null;
+                    }
+                    var foundRow = null;
+                    $.each(self.tableData.rows, function(index, row) {
+                        var passed = true;
+                        $.each(id, function(keyField, value) {
+                            if (row[keyField] != value) {
+                                passed = false;
+                            }
+                        });
+                        if(passed) {
+                            foundRow = row;
+                            return false;
+                        }
+                    });
+                    if (foundRow != null) {
+                        return foundRow;
+                    }
+                } else {
+                    return self.tableData.rows;
+                }
+            } else if (type == 'string' || type == 'number') {
+                // Single Key
+                var primaryKeyId = null;
+                var keysNeeded = 0;
+                $.each(self.options.columns, function(index, column) {
+                    if(column.primary == true) {
+                        keysNeeded ++;
+                        primaryKeyId = column.id;
+                    }
+                });
+                if (keysNeeded > 1) {
+                    return null;
+                }
+                if (primaryKeyId != null) {
+                    var foundRow = null;
+                    $.each(self.tableData.rows, function(index, row) {
+                        if(row[primaryKeyId] == id) {
+                            foundRow = row;
+                            return false;
+                        }
+                    });
+                    if (foundRow != null) {
+                        return foundRow;
+                    }
+                }
+            }
+        }
+        return null;
     },
     getSelectedRow: function() {
 
