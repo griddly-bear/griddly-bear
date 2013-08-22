@@ -147,49 +147,55 @@ $.widget('gb.grrr', {
         }
     },
     _createFooter: function() {
-        var self = this;
-        var footer = $('<div />').addClass('gb-footer');
-        var buttonBox = $("<div />").addClass('gb-button-box');
+        if (typeof this.options.footer != 'undefined') {
+            if (this.options.footer != null) {
+                var self = this;
+                var footer = $('<div />').addClass('gb-footer');
+                var buttonBox = $("<div />").addClass('gb-button-box');
 
-        var buttons = this.options.footer.buttons;
-        if (buttons != undefined && buttons.length > 0) {
-            $.each(buttons, function(index, value){
-                var btn = self._createButton(value);
-                buttonBox.append(btn);
-            });
+                if (typeof this.options.footer.buttons != 'undefined') {
+                    $.each(this.options.footer.buttons, function(index, value){
+                        var btn = self._createButton(value);
+                        buttonBox.append(btn);
+                    });
+                }
+
+                footer.append($('<div />').addClass('gb-pages'))
+                    .append(this.clearDiv)
+                    .append(buttonBox)
+                    .append($("<div />").addClass('gb-pagination'))
+                    .append(this.clearDiv);
+                this.element.append(footer);
+            }
         }
-
-        footer.append($('<div />').addClass('gb-pages'))
-            .append(this.clearDiv)
-            .append(buttonBox)
-            .append($("<div />").addClass('gb-pagination'))
-            .append(this.clearDiv);
-        this.element.append(footer);
     },
     _createHeader: function() {
-        var self = this;
-        var header = $('<div />').addClass('gb-header');
-        var buttonBox = $("<div />").addClass('gb-button-box');
+        if (typeof this.options.header != 'undefined') {
+            if (this.options.header != null) {
+                var self = this;
+                var header = $('<div />').addClass('gb-header');
+                var buttonBox = $("<div />").addClass('gb-button-box');
 
-        var buttons = this.options.header.buttons;
-        if (buttons != undefined && buttons.length > 0) {
-            $.each(buttons, function(index, value){
-                var btn = self._createButton(value);
-                buttonBox.append(btn);
-            });
+                if (typeof this.options.header.buttons != 'undefined') {
+                    $.each(this.options.header.buttons, function(index, value){
+                        var btn = self._createButton(value);
+                        buttonBox.append(btn);
+                    });
+                }
+
+                if (typeof this.options.header.title != 'undefined') {
+                    var title = $('<div />').addClass('gb-head-title').html(this.options.header.title);
+                    header.append(title).append(this.clearDiv);
+                }
+
+                header.append(buttonBox)
+                    .append($("<div />").addClass('gb-pagination'))
+                    .append(this.clearDiv)
+                    .append($('<div />').addClass('gb-pages'))
+                    .append(this.clearDiv);
+                this.element.append(header);
+            }
         }
-
-        if (this.options.header.title != undefined) {
-            var title = $('<div />').addClass('gb-head-title').html(this.options.header.title);
-            header.append(title).append(this.clearDiv);
-        }
-
-        header.append(buttonBox)
-            .append($("<div />").addClass('gb-pagination'))
-            .append(this.clearDiv)
-            .append($('<div />').addClass('gb-pages'))
-            .append(this.clearDiv);
-        this.element.append(header);
     },
     _createPagination: function() {
         var self = this;
