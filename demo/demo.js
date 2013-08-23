@@ -79,8 +79,7 @@ $(function() {
             ]
         },
         onRowClick: function (target) {
-            console.log("Reloading Grid");
-            $('#my-grid').grrr('reloadGrid')
+
         }
     });
 });
