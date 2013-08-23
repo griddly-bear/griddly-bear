@@ -79,7 +79,7 @@ $(function() {
             ]
         },
         onRowClick: function (target) {
-            console.log($('#my-grid').grrr('getSelectedRow'));
+            
         }
     });
 });
