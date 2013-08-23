@@ -596,8 +596,78 @@ $.widget('gb.grrr', {
         $('.gb-grid table tbody tr').removeClass('gb-data-expand');
     },
     // public methods
-    getRowData: function() {
-
+    getRowData: function(id) {
+        var self = this;
+        if (typeof self.tableData.rows == 'object') {
+            var type = typeof id;
+            if (type == 'undefined') {
+                return self.tableData.rows;
+            } else if (type == 'object') {
+                // Composite Key
+                if (id != null) {
+                    // Validate passed keys
+                    var keysPassed = 0;
+                    var keysNeeded = 0;
+                    $.each(id, function(keyField) {
+                        $.each(self.options.columns, function(index, column) {
+                            if (column.primary == true) {
+                                keysNeeded ++;
+                            }
+                            if(column.id = keyField && column.primary == true) {
+                                keysPassed ++;
+                            }
+                        });
+                    });
+                    if (keysNeeded != keysPassed) {
+                        return null;
+                    }
+                    var foundRow = null;
+                    $.each(self.tableData.rows, function(index, row) {
+                        var passed = true;
+                        $.each(id, function(keyField, value) {
+                            if (row[keyField] != value) {
+                                passed = false;
+                            }
+                        });
+                        if(passed) {
+                            foundRow = row;
+                            return false;
+                        }
+                    });
+                    if (foundRow != null) {
+                        return foundRow;
+                    }
+                } else {
+                    return self.tableData.rows;
+                }
+            } else if (type == 'string' || type == 'number') {
+                // Single Key
+                var primaryKeyId = null;
+                var keysNeeded = 0;
+                $.each(self.options.columns, function(index, column) {
+                    if(column.primary == true) {
+                        keysNeeded ++;
+                        primaryKeyId = column.id;
+                    }
+                });
+                if (keysNeeded > 1) {
+                    return null;
+                }
+                if (primaryKeyId != null) {
+                    var foundRow = null;
+                    $.each(self.tableData.rows, function(index, row) {
+                        if(row[primaryKeyId] == id) {
+                            foundRow = row;
+                            return false;
+                        }
+                    });
+                    if (foundRow != null) {
+                        return foundRow;
+                    }
+                }
+            }
+        }
+        return null;
     },
     getSelectedRow: function() {
 
