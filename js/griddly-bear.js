@@ -263,15 +263,28 @@ $.widget('gb.grrr', {
             .addClass('db-pages-text')
             .html('Page ' + this.state.page + ' of ' + this.state.totalPages);
 
-        if (this.options.footer.pagination == undefined || this.options.footer.pagination) {
-            $('div.gb-footer div.gb-pagination', this.element).before(pagination);
-            $('div.gb-footer div.gb-pagination:last', this.element).remove();
-            $('div.gb-footer div.gb-pages').html('').append(pages);
+        if (typeof this.options.footer != 'undefined') {
+            if (typeof this.options.footer == 'object' && this.options.footer != null) {
+                if (typeof this.options.footer.pagination != 'undefined') {
+                    if (this.options.footer.pagination == true) {
+                        $('div.gb-footer div.gb-pagination', this.element).before(pagination);
+                        $('div.gb-footer div.gb-pagination:last', this.element).remove();
+                        $('div.gb-footer div.gb-pages').html('').append(pages);
+                    }
+                }
+            }
         }
-        if (this.options.header.pagination != undefined && this.options.header.pagination) {
-            $('div.gb-header div.gb-pagination', this.element).after(pagination.clone());
-            $('div.gb-header div.gb-pagination:first', this.element).remove();
-            $('div.gb-header div.gb-pages').html('').append(pages.clone());
+
+        if (typeof this.options.header != 'undefined') {
+            if (typeof this.options.header == 'object' && this.options.header != null) {
+                if (typeof this.options.header.pagination != 'undefined') {
+                    if (this.options.header.pagination == true) {
+                        $('div.gb-header div.gb-pagination', this.element).after(pagination.clone());
+                        $('div.gb-header div.gb-pagination:first', this.element).remove();
+                        $('div.gb-header div.gb-pages').html('').append(pages.clone());
+                    }
+                }
+            }
         }
 
         return pagination;
