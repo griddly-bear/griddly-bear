@@ -125,12 +125,18 @@ $.widget('gb.grrr', {
             self.cancelClick = false;
             self.downTimer = setTimeout(function() {
                 self.cancelClick = true;
+                self.selectedRow = target;
+                $('.gb-grid table tbody tr').removeClass('gb-row-selected');
+                target.addClass('gb-row-selected');
                 self._showRowData(target);
             }, 2000);
         };
         var onUp = function(target) {
             clearTimeout(self.downTimer);
             if (self.cancelClick == false) {
+                self.selectedRow = target;
+                $('.gb-grid table tbody tr').removeClass('gb-row-selected');
+                target.addClass('gb-row-selected');
                 self._hideRowData();
                 self.options.onRowClick(target);
             }
@@ -456,6 +462,7 @@ $.widget('gb.grrr', {
 
             self.state.rows = data.total;
             self.state.totalPages = Math.ceil(self.state.rows / self.options.rowsPerPage);
+            self.tableData = data;
             self._drawRows(data);
             self._onResize();
         });
@@ -670,7 +677,15 @@ $.widget('gb.grrr', {
         return null;
     },
     getSelectedRow: function() {
-
+        var self = this;
+        var index = $('.gb-grid table tbody tr').index(self.selectedRow);
+        if (typeof index == 'number') {
+            var selectedRow = self.tableData.rows[index];
+            if (typeof selectedRow != 'undefined') {
+                return selectedRow;
+            }
+        }
+        return null;
     },
     goToPage: function(page) {
         if (page > this.state.totalPages) {
