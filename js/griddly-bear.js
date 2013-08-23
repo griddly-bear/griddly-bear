@@ -236,11 +236,11 @@ $.widget('gb.grrr', {
                 href: '#',
                 class: 'gb-previous',
                 title: 'Previous Page'
-            }).text('< Previous');
+            }).text('<');
 
             el.append(a);
         } else {
-            el.text('< Previous');
+            el.text('<');
         }
 
         ul.append(el);
@@ -272,11 +272,11 @@ $.widget('gb.grrr', {
                 href: '#',
                 class: 'gb-next',
                 title: 'Next Page'
-            }).text('Next >');
+            }).text('>');
 
             el.append(a);
         } else {
-            el.text('Next >');
+            el.text('>');
         }
         ul.append(el);
 
