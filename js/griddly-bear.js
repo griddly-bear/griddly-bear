@@ -46,7 +46,7 @@ $.widget('gb.grrr', {
 
         if ($.inArray(key, ['filters', 'sort']) !== -1) {
             this.state.page = 1;
-            this._getRows();
+            this.reloadGrid();
         }
     },
 
@@ -138,63 +138,69 @@ $.widget('gb.grrr', {
         var el = document.createElement('div');
         el.setAttribute('ongesturestart', 'return;');
         if (typeof el.ongesturestart === "function") {
-            $(this.element).on('touchstart', 'tr', function() {
+            $(this.element).on('touchstart', 'tbody tr', function() {
                 onDown($(this));
-            }).on('touchend', 'tr', function(){
+            }).on('touchend', 'tbody tr', function(){
                 onUp($(this));
             });
         } else {
-            $(this.element).on('mousedown', 'tr', function() {
+            $(this.element).on('mousedown', 'tbody tr', function() {
                 onDown($(this));
-            }).on('mouseup', 'tr', function(){
+            }).on('mouseup', 'tbody tr', function(){
                 onUp($(this));
             });
         }
     },
     _createFooter: function() {
-        var self = this;
-        var footer = $('<div />').addClass('gb-footer');
-        var buttonBox = $("<div />").addClass('gb-button-box');
+        if (typeof this.options.footer != 'undefined') {
+            if (this.options.footer != null) {
+                var self = this;
+                var footer = $('<div />').addClass('gb-footer');
+                var buttonBox = $("<div />").addClass('gb-button-box');
 
-        var buttons = this.options.footer.buttons;
-        if (buttons != undefined && buttons.length > 0) {
-            $.each(buttons, function(index, value){
-                var btn = self._createButton(value);
-                buttonBox.append(btn);
-            });
+                if (typeof this.options.footer.buttons != 'undefined') {
+                    $.each(this.options.footer.buttons, function(index, value){
+                        var btn = self._createButton(value);
+                        buttonBox.append(btn);
+                    });
+                }
+
+                footer.append($('<div />').addClass('gb-pages'))
+                    .append(this.clearDiv)
+                    .append(buttonBox)
+                    .append($("<div />").addClass('gb-pagination'))
+                    .append(this.clearDiv);
+                this.element.append(footer);
+            }
         }
-
-        footer.append($('<div />').addClass('gb-pages'))
-            .append(this.clearDiv)
-            .append(buttonBox)
-            .append($("<div />").addClass('gb-pagination'))
-            .append(this.clearDiv);
-        this.element.append(footer);
     },
     _createHeader: function() {
-        var self = this;
-        var header = $('<div />').addClass('gb-header');
-        var buttonBox = $("<div />").addClass('gb-button-box');
+        if (typeof this.options.header != 'undefined') {
+            if (this.options.header != null) {
+                var self = this;
+                var header = $('<div />').addClass('gb-header');
+                var buttonBox = $("<div />").addClass('gb-button-box');
 
-        var buttons = this.options.header.buttons;
-        if (buttons != undefined && buttons.length > 0) {
-            $.each(buttons, function(index, value){
-                var btn = self._createButton(value);
-                buttonBox.append(btn);
-            });
+                if (typeof this.options.header.buttons != 'undefined') {
+                    $.each(this.options.header.buttons, function(index, value){
+                        var btn = self._createButton(value);
+                        buttonBox.append(btn);
+                    });
+                }
+
+                if (typeof this.options.header.title != 'undefined') {
+                    var title = $('<div />').addClass('gb-head-title').html(this.options.header.title);
+                    header.append(title).append(this.clearDiv);
+                }
+
+                header.append(buttonBox)
+                    .append($("<div />").addClass('gb-pagination'))
+                    .append(this.clearDiv)
+                    .append($('<div />').addClass('gb-pages'))
+                    .append(this.clearDiv);
+                this.element.append(header);
+            }
         }
-
-        if (this.options.header.title != undefined) {
-            var title = $('<div />').addClass('gb-head-title').html(this.options.header.title);
-            header.append(title).append(this.clearDiv);
-        }
-
-        header.append(buttonBox)
-            .append($("<div />").addClass('gb-pagination'))
-            .append(this.clearDiv)
-            .append($('<div />').addClass('gb-pages'))
-            .append(this.clearDiv);
-        this.element.append(header);
     },
     _createPagination: function() {
         var self = this;
@@ -605,18 +611,18 @@ $.widget('gb.grrr', {
             this.state.page = page;
         }
 
-        this._getRows();
+        this.reloadGrid();
     },
     nextPage: function() {
         if (this.state.page < this.state.totalPages) {
             this.state.page++;
-            this._getRows();
+            this.reloadGrid();
         }
     },
     previousPage: function() {
         if (this.state.page > 1) {
             this.state.page--;
-            this._getRows();
+            this.reloadGrid();
         }
     },
     reloadGrid: function() {
