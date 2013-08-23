@@ -16,7 +16,7 @@ $.widget('gb.grrr', {
         header: null,
         onRowClick: function(){},
         rowsPerPage: 10,
-        rowsPerPageOptions: [10],
+        rowsPerPageOptions: [5,10,15],
         sort: {},
         url: null,
         alternatingRows: true
@@ -110,6 +110,11 @@ $.widget('gb.grrr', {
             filters[$(this).attr('data-id')] = $(this).val();
 
             self.option('filters', filters);
+        }).on('change', '.gb-pagination select', function() {
+            var rowsPerPage = $(this).val();
+            $('.gb-pagination select').val(rowsPerPage);
+            self.options.rowsPerPage = rowsPerPage;
+            self.reloadGrid();
         });
 
         // Touch events
@@ -120,12 +125,18 @@ $.widget('gb.grrr', {
             self.cancelClick = false;
             self.downTimer = setTimeout(function() {
                 self.cancelClick = true;
+                self.selectedRow = target;
+                $('.gb-grid table tbody tr').removeClass('gb-row-selected');
+                target.addClass('gb-row-selected');
                 self._showRowData(target);
             }, 2000);
         };
         var onUp = function(target) {
             clearTimeout(self.downTimer);
             if (self.cancelClick == false) {
+                self.selectedRow = target;
+                $('.gb-grid table tbody tr').removeClass('gb-row-selected');
+                target.addClass('gb-row-selected');
                 self._hideRowData();
                 self.options.onRowClick(target);
             }
@@ -208,16 +219,28 @@ $.widget('gb.grrr', {
         var ul = $('<ul />');
         var el = $('<li />');
 
+        var rowsPerPageOptions = $('<select />').addClass('gb-rows-per-page');
+        $.each(this.options.rowsPerPageOptions, function(index, value) {
+            var rowOption = $('<option />')
+                .attr('value', value)
+                .text(value);
+            if (value == self.options.rowsPerPage) {
+                rowOption.attr('selected', true);
+            }
+            rowsPerPageOptions.append(rowOption);
+        });
+        pagination.append(rowsPerPageOptions);
+
         if (this.state.page > 1) {
             var a = $('<a/>').attr({
                 href: '#',
                 class: 'gb-previous',
                 title: 'Previous Page'
-            }).text('< Previous');
+            }).text('<');
 
             el.append(a);
         } else {
-            el.text('< Previous');
+            el.text('<');
         }
 
         ul.append(el);
@@ -249,11 +272,11 @@ $.widget('gb.grrr', {
                 href: '#',
                 class: 'gb-next',
                 title: 'Next Page'
-            }).text('Next >');
+            }).text('>');
 
             el.append(a);
         } else {
-            el.text('Next >');
+            el.text('>');
         }
         ul.append(el);
 
@@ -452,6 +475,7 @@ $.widget('gb.grrr', {
 
             self.state.rows = data.total;
             self.state.totalPages = Math.ceil(self.state.rows / self.options.rowsPerPage);
+            self.tableData = data;
             self._drawRows(data);
             self._onResize();
         });
@@ -592,11 +616,89 @@ $.widget('gb.grrr', {
         $('.gb-grid table tbody tr').removeClass('gb-data-expand');
     },
     // public methods
-    getRowData: function() {
-
+    getRowData: function(id) {
+        var self = this;
+        if (typeof self.tableData.rows == 'object') {
+            var type = typeof id;
+            if (type == 'undefined') {
+                return self.tableData.rows;
+            } else if (type == 'object') {
+                // Composite Key
+                if (id != null) {
+                    // Validate passed keys
+                    var keysPassed = 0;
+                    var keysNeeded = 0;
+                    $.each(id, function(keyField) {
+                        $.each(self.options.columns, function(index, column) {
+                            if (column.primary == true) {
+                                keysNeeded ++;
+                            }
+                            if(column.id = keyField && column.primary == true) {
+                                keysPassed ++;
+                            }
+                        });
+                    });
+                    if (keysNeeded != keysPassed) {
+                        return null;
+                    }
+                    var foundRow = null;
+                    $.each(self.tableData.rows, function(index, row) {
+                        var passed = true;
+                        $.each(id, function(keyField, value) {
+                            if (row[keyField] != value) {
+                                passed = false;
+                            }
+                        });
+                        if(passed) {
+                            foundRow = row;
+                            return false;
+                        }
+                    });
+                    if (foundRow != null) {
+                        return foundRow;
+                    }
+                } else {
+                    return self.tableData.rows;
+                }
+            } else if (type == 'string' || type == 'number') {
+                // Single Key
+                var primaryKeyId = null;
+                var keysNeeded = 0;
+                $.each(self.options.columns, function(index, column) {
+                    if(column.primary == true) {
+                        keysNeeded ++;
+                        primaryKeyId = column.id;
+                    }
+                });
+                if (keysNeeded > 1) {
+                    return null;
+                }
+                if (primaryKeyId != null) {
+                    var foundRow = null;
+                    $.each(self.tableData.rows, function(index, row) {
+                        if(row[primaryKeyId] == id) {
+                            foundRow = row;
+                            return false;
+                        }
+                    });
+                    if (foundRow != null) {
+                        return foundRow;
+                    }
+                }
+            }
+        }
+        return null;
     },
     getSelectedRow: function() {
-
+        var self = this;
+        var index = $('.gb-grid table tbody tr').index(self.selectedRow);
+        if (typeof index == 'number') {
+            var selectedRow = self.tableData.rows[index];
+            if (typeof selectedRow != 'undefined') {
+                return selectedRow;
+            }
+        }
+        return null;
     },
     goToPage: function(page) {
         if (page > this.state.totalPages) {

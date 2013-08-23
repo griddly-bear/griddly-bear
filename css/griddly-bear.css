@@ -53,8 +53,8 @@
 
 .gb-data-floater {
     position: absolute;
-    font-family:'Verdana', 'Tahoma', 'Arial';
-    font-size:12px;
+    font-family:'Helvetica Neue', 'Verdana', 'Tahoma', 'Arial';
+    font-size:11px;
     background: #eee;
     border: 1px solid #ccc;
     padding: 10px;
@@ -108,28 +108,32 @@
     display: none;
 }
 
+.gb-row-selected td {
+    background-color: #cccccc;
+}
+
 .gb-clear-both {
     clear:both;
 }
 
 .gb-header {
     border-bottom:1px solid #DBDBDB;
-    font-family:'Verdana', 'Tahoma', 'Arial';
-    font-size:12px;
+    font-family:'Helvetica Neue', 'Verdana', 'Tahoma', 'Arial';
+    font-size:11px;
     padding:3px;
     padding-bottom:10px;
 }
 
 .gb-footer {
     border-top:1px solid #DBDBDB;
-    font-family:'Verdana', 'Tahoma', 'Arial';
-    font-size:12px;
+    font-family:'Helvetica Neue', 'Verdana', 'Tahoma', 'Arial';
+    font-size:11px;
     padding:3px;
     padding-top:10px;
 }
 
 .gb-header .gb-head-title {
-    font-size:18px;
+    font-size:14px;
     font-weight:bold;
     border-bottom:1px solid #DBDBDB;
     margin-bottom:10px;
@@ -141,8 +145,8 @@
     border-spacing:0px;
     border-collapse: collapse;
     width:100%;
-    font-family:'Verdana', 'Tahoma', 'Arial';
-    font-size:12px;
+    font-family:'Helvetica Neue', 'Verdana', 'Tahoma', 'Arial';
+    font-size:11px;
 }
 
 .gb-data-table .gb-data-table-header-row th {
@@ -198,6 +202,8 @@
 .gb-pagination ul {
     list-style: none;
     margin:0px;
+    position: relative;
+    float: right;
 }
 
 .gb-pagination ul li {
@@ -223,6 +229,14 @@
     color:#58AEFF;
     font-weight:bold;
     border-color:#58AEFF;
+}
+
+.gb-pagination select {
+    position: relative;
+    float: right;
+    font-size: 12px;
+    margin-left:7px;
+    margin-top: 5px;
 }
 
 .gb-pages {
