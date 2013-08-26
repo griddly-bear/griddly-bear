@@ -429,6 +429,10 @@ $.widget('gb.grrr', {
                         self.options.columns[i].primary) {
                         td.attr('data-primary', 'true');
                     }
+                    if (self.options.columns[i].id == column &&
+                        self.options.columns[i].hidden) {
+                        td.addClass('hidden');
+                    }
                 }
                 lastRow.append(td);
             });
