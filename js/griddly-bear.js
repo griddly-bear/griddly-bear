@@ -482,6 +482,7 @@ $.widget('gb.grrr', {
             self.tableData = data;
             self._drawRows(data);
             self._onResize();
+            $('.gb-grid table').css('height', '');
         });
     },
     _onResize: function() {
@@ -728,7 +729,9 @@ $.widget('gb.grrr', {
         }
     },
     reloadGrid: function() {
-        $('.gb-grid table tbody').html('');
+        var height = $('.gb-grid table').height();
+        $('.gb-grid table').css('height', height + 'px');
+        $('.gb-grid table tbody').html('<tr><td></td></tr>');
         $('.gb-grid table thead th').removeClass('gb-hidden');
         this._getRows();
     },
