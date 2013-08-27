@@ -83,38 +83,34 @@ $.widget('gb.grrr', {
             }
         });
 
-        $(this.element).on('click', 'div.gb-pagination a.gb-next', function(e) {
+        $(this.element).on('click', 'div.gb-pagination ul li', function(e) {
             e.preventDefault();
-            self.nextPage();
-        }).on('click', 'div.gb-pagination a.gb-previous', function(e) {
-            e.preventDefault();
-            self.previousPage();
-        }).on('click', 'div.gb-pagination a.gb-page', function(e) {
-            var page = parseInt($(this).attr('data-page'));
-            e.preventDefault();
-            self.goToPage(page);
-
-        }).on('click', 'th a.gb-column-sort', function(e) {
-            e.preventDefault();
-
-            var columnId = $(this).attr('data-id');
-            var order = columnId in self.options.sort ?
-                (self.options.sort[columnId].toLowerCase() == 'asc' ? 'desc' : 'asc') : 'asc';
-
-            var sort = {};
-            sort[columnId] = order;
-
-            self.option('sort', sort);
-        }).on('change', 'input.filter', function() {
-            var filters = self.options.filters;
-            filters[$(this).attr('data-id')] = $(this).val();
-
-            self.option('filters', filters);
+            var link = $(this).children('a');
+            console.log(link);
+            if (link.hasClass('gb-next')) {
+                self.nextPage();
+            } else if (link.hasClass('gb-previous')) {
+                self.previousPage();
+            } else if (link.hasClass('gb-page')) {
+                self.goToPage(parseInt(link.attr('data-page')));
+            }
         }).on('change', '.gb-pagination select', function() {
             var rowsPerPage = $(this).val();
             $('.gb-pagination select').val(rowsPerPage);
             self.options.rowsPerPage = rowsPerPage;
             self.reloadGrid();
+        }).on('click', 'th a.gb-column-sort', function(e) {
+            e.preventDefault();
+            var columnId = $(this).attr('data-id');
+            var order = columnId in self.options.sort ?
+                (self.options.sort[columnId].toLowerCase() == 'asc' ? 'desc' : 'asc') : 'asc';
+            var sort = {};
+            sort[columnId] = order;
+            self.option('sort', sort);
+        }).on('change', 'input.filter', function() {
+            var filters = self.options.filters;
+            filters[$(this).attr('data-id')] = $(this).val();
+            self.option('filters', filters);
         });
 
         // Touch events
