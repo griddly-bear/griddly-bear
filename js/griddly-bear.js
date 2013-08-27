@@ -396,14 +396,16 @@ $.widget('gb.grrr', {
             }
 
             if (column.filterable) {
-                th.append(
-                    $('<input />').attr({
-                        'type': 'text',
-                        'name': 'filter[]',
-                        'data-id': column.id,
-                        'placeholder': 'Search...'
-                    }).addClass('filter gb-hidden')
-                );
+                var filter = $('<input />').attr({
+                    'type': 'text',
+                    'name': 'filter[]',
+                    'data-id': column.id,
+                    'placeholder': 'Search...'})
+                    .addClass('filter');
+                if (self.state.filtersOn == false) {
+                    filter.hide();
+                }
+                th.append(filter);
             }
 
             th.attr({
