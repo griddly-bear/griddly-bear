@@ -64,8 +64,29 @@ $.widget('gb.grrr', {
             button.attr('title', params.title);
         }
 
-        if (params.icon != undefined) {
-            button.append($("<img />").attr('src', params.icon).addClass('gb-button-icon'));
+        if (typeof params.icon != 'undefined') {
+            var icon = $("<img />").addClass('gb-button-icon');
+            if (typeof params.icon == 'string') {
+                icon.attr('src', params.icon)
+            } else if (typeof params.icon == 'object' && typeof params.icon.src != 'undefined') {
+                icon.attr('src', params.icon.src);
+            }
+            if (typeof params.icon.attributes == 'object') {
+                $.each(params.icon.attributes, function(index, value){
+                    if (index.toLowerCase() == 'class') {
+                        if (typeof value == 'string') {
+                            icon.addClass(value);
+                        } else {
+                            $.each(value, function(index, className){
+                                icon.addClass(className);
+                            });
+                        }
+                    } else {
+                        icon.attr(index, value);
+                    }
+                });
+            }
+            button.append(icon);
         }
 
         if (params.label != undefined) {
@@ -75,7 +96,13 @@ $.widget('gb.grrr', {
         if (typeof params.attributes == 'object') {
             $.each(params.attributes, function(index, value){
                 if (index.toLowerCase() == 'class') {
-                    button.addClass(value);
+                    if (typeof value == 'string') {
+                        button.addClass(value);
+                    } else {
+                        $.each(value, function(index, className){
+                            button.addClass(className);
+                        });
+                    }
                 } else {
                     button.attr(index, value);
                 }
