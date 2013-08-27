@@ -43,6 +43,10 @@ $(function() {
                     icon: 'images/icon_funnel.png',
                     title: 'Toggle Filters',
                     label: '',
+                    attributes: {
+                        class: 'awesome',
+                        'data-something': 'something'
+                    },
                     click: function(){
                         $('#my-grid').grrr('toggleFilters');
                     }

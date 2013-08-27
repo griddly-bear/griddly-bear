@@ -72,6 +72,16 @@ $.widget('gb.grrr', {
             button.append(params.label);
         }
 
+        if (typeof params.attributes == 'object') {
+            $.each(params.attributes, function(index, value){
+                if (index.toLowerCase() == 'class') {
+                    button.addClass(value);
+                } else {
+                    button.attr(index, value);
+                }
+            });
+        }
+
         return button;
     },
     _createEvents: function() {
