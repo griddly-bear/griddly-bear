@@ -40,13 +40,15 @@ $(function() {
             title: 'Grid Title',
             buttons: [
                 {
-                    icon: 'images/icon_funnel.png',
+                    icon: {
+                        src: 'images/icon_funnel.png',
+                        attributes: {
+                            class: ['class1','class2'],
+                            'data-stuff': 'something-here'
+                        }
+                    },
                     title: 'Toggle Filters',
                     label: '',
-                    attributes: {
-                        class: 'awesome',
-                        'data-something': 'something'
-                    },
                     click: function(){
                         $('#my-grid').grrr('toggleFilters');
                     }
