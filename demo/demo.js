@@ -84,8 +84,8 @@ $(function() {
                 }
             ]
         },
-        onRowClick: function (target) {
-            
+        onSelect: function (target) {
+            console.log('Selected Triggered.');
         }
     });
 });
