@@ -13,7 +13,7 @@ $.widget('gb.grrr', {
         filters: {},
         footer: null,
         header: null,
-        onRowClick: function(){},
+        onSelect: function(target){},
         rowsPerPage: 10,
         rowsPerPageOptions: [5,10,15],
         sort: {},
@@ -25,7 +25,13 @@ $.widget('gb.grrr', {
         rows: 0,
         isResizing: false,  // So we don't get race conditions.
         totalPages: 0,
-        filtersOn: false
+        filtersOn: false,
+        cursor: {
+            origin: null,
+            position: null,
+            tolerance: 10, // px
+            holdWait: 2000 // ms
+        }
     },
 
     // widget methods
@@ -151,40 +157,60 @@ $.widget('gb.grrr', {
         // Touch events
         var self = this;
         var tbody = $('table tbody', self.element);
-        var onDown = function(target) {
-            clearTimeout(self.downTimer);
-            self.cancelClick = false;
-            self.downTimer = setTimeout(function() {
-                self.cancelClick = true;
-                self.selectedRow = target;
-                $('table tbody tr', self.element).removeClass('gb-row-selected');
-                target.addClass('gb-row-selected');
-                self._showRowData(target);
-            }, 2000);
-        };
-        var onUp = function(target) {
-            clearTimeout(self.downTimer);
-            if (self.cancelClick == false) {
-                self.selectedRow = target;
-                $('table tbody tr', self.element).removeClass('gb-row-selected');
-                target.addClass('gb-row-selected');
-                self._hideRowData();
-                self.options.onRowClick(target);
-            }
-        };
         var el = document.createElement('div');
         el.setAttribute('ongesturestart', 'return;');
-        if (typeof el.ongesturestart === "function") {
-            $(this.element).on('touchstart', 'tbody tr', function() {
-                onDown($(this));
+        if (typeof el.ongesturestart === "function") { // Is a mobile device
+            $(this.element).on('touchstart', 'tbody tr', function(event) {
+                var target = $(this);
+                clearTimeout(self.downTimer);
+                self.state.cursor.origin = {
+                    x: event.originalEvent.pageX,
+                    y: event.originalEvent.pageY
+                };
+                self.state.cursor.cancelClick = false;
+                self.downTimer = setTimeout(function() {
+                    self.state.cursor.cancelClick = true;
+                    self._selectRow(target);
+                    self._showRowData(target);
+                }, self.state.cursor.holdWait);
+            }).on('touchmove', 'tbody tr', function(event){
+                self.state.cursor.position = {
+                    x: event.originalEvent.pageX,
+                    y: event.originalEvent.pageY
+                };
             }).on('touchend', 'tbody tr', function(){
-                onUp($(this));
+                clearTimeout(self.downTimer);
+                if (self.state.cursor.cancelClick == false) {
+                    var isClick = false;
+                    if (self.state.cursor.position == null) {
+                        isClick = true;
+                    } else {
+                        var dX = Math.abs(self.state.cursor.position.x - self.state.cursor.origin.x);
+                        var dY = Math.abs(self.state.cursor.position.y - self.state.cursor.origin.y);
+                        if (dX <= self.state.cursor.tolerance && dY <= self.state.cursor.tolerance) {
+                            isClick = true;
+                        }
+                    }
+                    if (isClick) {
+                        self._selectRow($(this));
+                        self.options.onSelect(self.selectedRow);
+                    }
+                    self.state.cursor.origin = null;
+                    self.state.cursor.position = null;
+                }
             });
         } else {
-            $(this.element).on('mousedown', 'tbody tr', function() {
-                onDown($(this));
-            }).on('mouseup', 'tbody tr', function(){
-                onUp($(this));
+            this.element.attr("oncontextmenu","return false;"); // Disable right click context menu;
+            $(this.element).on('dblclick', 'tbody tr', function(){
+                self._selectRow($(this));
+                self.options.onSelect($(this));
+            }).on('click', 'tbody tr', function() {
+                self._selectRow($(this));
+            }).on('mouseup', 'tbody tr', function(event) { // Simulated right click handler.
+                if (event.which === 3) {
+                    self._selectRow($(this));
+                    self._showRowData(self.selectedRow);
+                }
             });
         }
     },
@@ -516,6 +542,13 @@ $.widget('gb.grrr', {
             $('table', self.element).css('height', '');
             $('.gb-filler', self.element).remove();
         });
+    },
+    _selectRow: function(target) {
+        var self = this;
+        self._hideRowData();
+        self.selectedRow = target;
+        $('table tbody tr', self.element).removeClass('gb-row-selected');
+        self.selectedRow.addClass('gb-row-selected');
     },
     _onResize: function() {
         var self = this;
