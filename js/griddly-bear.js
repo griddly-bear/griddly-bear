@@ -38,6 +38,13 @@ $.widget('gb.grrr', {
     _create: function() {
         this._super();
 
+        // minWidth value required for responsiveness
+        for (var i = 0; i < this.options.columns.length; i++) {
+            if (typeof this.options.columns[i].minWidth == 'undefined') {
+                this.options.columns[i].minWidth = 100;
+            }
+        }
+
         // put creation code here
         this._createHeader();
         this._createTable();
@@ -445,13 +452,6 @@ $.widget('gb.grrr', {
         table.append(tbody);
         table.addClass('gb-data-table');
         this.element.append(table);
-
-        this.element.append(
-            $('<div/>')
-                .addClass('gb-data-floater')
-                .addClass('gb-layout-vertical')
-                .addClass('gb-hidden')
-        );
     },
     _drawRows: function(data) {
         var self = this;
@@ -601,6 +601,8 @@ $.widget('gb.grrr', {
             });
         } else if (minWidthTotal == layoutChangeWidth && table.width() <= minWidthTotal ) { // View is at minimum.
             isVerticalLayout = true;
+        } else {
+            // Proceed.
         }
 
         if (isVerticalLayout == true) {
@@ -639,7 +641,8 @@ $.widget('gb.grrr', {
         $.each(this.options.columns, function(index, column) {
             var columnDom = $('th[data-id="' + column.id + '"]', self.element);
             if (columnDom.hasClass("gb-hidden") == false) {
-                minWidthTotal += column.minWidth + self._getExtraWidth(columnDom);
+                minWidthTotal += (typeof column.minWidth != 'undefined') ? column.minWidth : 100 +
+                    self._getExtraWidth(columnDom);
             }
         });
         return minWidthTotal;
@@ -658,32 +661,67 @@ $.widget('gb.grrr', {
     _showRowData: function(target)
     {
         var self = this;
-        var hasHidden = false;
-        $.each(this.options.columns, function(index, column) {
-            var columnHeader = $('table thead th[data-id="' + column.id + '"]', self.element);
-            if (columnHeader.hasClass('gb-hidden')) {
-                hasHidden = true;
-                return false;
+        if (target.hasClass('gb-additional-data') == false) {
+            self._hideRowData();
+            if (target.hasClass('gb-data-expand') == false) {
+                var hasHidden = false;
+                $.each(this.options.columns, function(index, column) {
+                    var columnHeader = $('table thead th[data-id="' + column.id + '"]', self.element);
+                    if (columnHeader.hasClass('gb-hidden')) {
+                        hasHidden = true;
+                        return false;
+                    }
+                });
+                if (hasHidden) {
+                    target.addClass('gb-data-expand');
+                    var additionalData = $('<div />')
+                        .addClass('gb-data-block')
+                        .html(
+                            target.html()
+                                .replace(/<td/gi, "<div")
+                                .replace(/<\/td>/gi, "</div>")
+                        )
+                        .css({
+                            width: target.width() + 'px'
+                        })
+                    additionalData
+                        .children('div')
+                            .toggleClass('gb-hidden')
+                            .removeClass('gb-data-cell')
+                            .removeAttr('data-id')
+                            .addClass('gb-additional-data-field')
+                            .children('span')
+                                .removeClass('gb-vertical-label')
+                                .addClass('gb-additional-data-field-label');
+                    additionalData
+                        .children('.gb-hidden')
+                            .remove();
+
+                    var additionalRow = $("<tr />")
+                        .addClass('gb-additional-data')
+                        .addClass('gb-data-row');
+
+                    var isFirstVisible = true;
+                    target.children('td').each(function() {
+                        var cell = $('<td />');
+                        if ($(this).hasClass('gb-hidden')) {
+                            cell.addClass('gb-hidden');
+                        } else if (isFirstVisible == true) {
+                            cell.append(additionalData);
+                            isFirstVisible = false;
+                        }
+                        additionalRow.append(cell);
+                    });
+
+                    target.after(additionalRow);
+                    additionalRow.css('height', additionalData.outerHeight() + 'px')
+                }
             }
-        });
-        if (hasHidden) {
-            var rowData = target.html();
-            var floater = $('.gb-data-floater');
-            floater.html(rowData);
-            floater.children('td').toggleClass('gb-hidden');
-            floater.css('top', target.offset().top + target.height() - 1);
-            if (target.hasClass('gb-data-expand')) {
-                target.removeClass('gb-data-expand');
-            } else {
-                $('table tbody tr', self.element).removeClass('gb-data-expand');
-                target.addClass('gb-data-expand');
-            }
-            floater.removeClass('gb-hidden');
         }
     },
     _hideRowData: function()
     {
-        $('.gb-data-floater', this.element).addClass('gb-hidden');
+        $('.gb-additional-data', this.element).remove();
         $('table tbody tr', this.element).removeClass('gb-data-expand');
     },
     // public methods
