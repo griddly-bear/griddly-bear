@@ -172,7 +172,8 @@
     float: right;
 }
 
-.gb-pagination ul li {
+.gb-pagination ul li,
+.gb-pagination select{
     display:inline-block;
     margin-left:7px;
     padding:5px;
@@ -201,9 +202,9 @@
 .gb-pagination select {
     position: relative;
     float: right;
-    font-size: 12px;
-    margin-left:7px;
-    margin-top: 5px;
+    margin-top: 0px;
+    -webkit-appearance: none;
+    -moz-appearance: none;
 }
 
 .gb-pages {
