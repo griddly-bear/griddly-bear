@@ -77,7 +77,12 @@ $.widget('gb.grrr', {
         }
 
         if (typeof params.icon != 'undefined') {
-            var icon = $("<img />").addClass('gb-button-icon');
+            var element = 'img';
+            if (typeof params.icon.src == 'undefined') {
+                // No source, then using bootstrap
+                element = 'i';
+            }
+            var icon = $("<" + element + " />").addClass('gb-button-icon');
             if (typeof params.icon == 'string') {
                 icon.attr('src', params.icon)
             } else if (typeof params.icon == 'object' && typeof params.icon.src != 'undefined') {
