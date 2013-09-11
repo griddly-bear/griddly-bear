@@ -11,7 +11,7 @@ $.widget('gb.grrr', {
     options: {
         columns: {},
         filters: {},
-        footer: null,
+        footer: {pagination: true},
         header: null,
         onSelect: function(target){},
         rowsPerPage: 10,
