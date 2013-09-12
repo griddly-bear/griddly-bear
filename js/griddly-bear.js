@@ -744,6 +744,8 @@ $.widget('gb.grrr', {
         if ($.isFunction(format)) {
             return format(data, rowData);
         }
+
+        return data;
     },
     // public methods
     getRowData: function(id) {
