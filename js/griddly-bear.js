@@ -737,7 +737,7 @@ $.widget('gb.grrr', {
     },
     _formatColumnData: function(data, rowData, format)
     {
-        if (format == undefined) {
+        if (typeof format == 'undefined') {
             return data;
         }
 
