@@ -32,7 +32,10 @@ $(function() {
                 id: "name.alias",
                 title: "Alias",
                 minWidth: 200,
-                required: false
+                required: false,
+                format: function(data, rowData) {
+                    return rowData['name.first'] + ' "' + data + '" ' + rowData['name.last'];
+                }
             }
         ],
         header: {
