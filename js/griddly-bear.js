@@ -485,7 +485,13 @@ $.widget('gb.grrr', {
                     .addClass('gb-data-cell')
                     .attr('data-id', column)
                     .append(label)
-                    .append(row[column]);
+                    .append(
+                        self._formatColumnData(
+                            row[column],
+                            row,
+                            self.options.columns[index].format
+                        )
+                    );
                 for (var i in self.options.columns) {
                     if (self.options.columns[i].id == column &&
                         self.options.columns[i].primary != undefined &&
@@ -729,6 +735,18 @@ $.widget('gb.grrr', {
     {
         $('.gb-additional-data', this.element).remove();
         $('table tbody tr', this.element).removeClass('gb-data-expand');
+    },
+    _formatColumnData: function(data, rowData, format)
+    {
+        if (typeof format == 'undefined') {
+            return data;
+        }
+
+        if ($.isFunction(format)) {
+            return format(data, rowData);
+        }
+
+        return data;
     },
     // public methods
     getRowData: function(id) {
