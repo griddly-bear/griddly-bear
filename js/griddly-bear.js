@@ -14,6 +14,7 @@ $.widget('gb.grrr', {
         footer: {pagination: true},
         header: null,
         onSelect: function(target){},
+        multiSelect: false,
         rowsPerPage: 10,
         rowsPerPageOptions: [5,10,15],
         sort: {},
@@ -394,6 +395,11 @@ $.widget('gb.grrr', {
         // create header row
         var headTr = $('<tr />');
         headTr.addClass('gb-data-table-header-row');
+
+        if (this.options.multiSelect) {
+            headTr.append($('<th />').attr('data-selector', 'true'));
+        }
+
         $.each(this.options.columns, function(index, column) {
             column = $.extend({}, self.columnDefaults, column);
             var th = $('<th />').attr('data-id', column.id);
@@ -465,6 +471,9 @@ $.widget('gb.grrr', {
         var tableBody = $('tbody', this.element);
 
         $('thead th', self.element).each(function() {
+            if ($(this).attr('data-selector')) {
+                return;
+            }
             columns.push($(this).attr('data-id'));
         });
 
@@ -476,6 +485,13 @@ $.widget('gb.grrr', {
             }
             tableBody.append(tr);
             var lastRow = $('tbody tr.gb-data-row', self.element).last();
+
+            if (self.options.multiSelect) {
+                var td = $('<td />');
+                var checkbox = $('<input/>').attr({type: 'checkbox', id: index});
+                td.append(checkbox);
+                lastRow.append(td);
+            }
 
             $.each(columns, function(index, column) {
                 var td = $('<td />');
@@ -824,15 +840,32 @@ $.widget('gb.grrr', {
     },
     getSelectedRow: function() {
         var self = this;
-        if (self.state.selectedRow != null) {
-            var index = $('table tbody tr', this.element).index(self.state.selectedRow);
-            if (typeof index == 'number') {
-                var selectedRow = self.tableData.rows[index];
-                if (typeof selectedRow != 'undefined') {
-                    return selectedRow;
+
+        if (self.options.multiSelect) {
+            var rows = [];
+            $.each(
+                $('table tbody tr input[type="checkbox"]:checked', this.element),
+                function (index, box) {
+                    var id = $(box).attr('id');
+                    var data = self.tableData.rows[id];
+
+                    rows.push(data);
+                }
+            );
+
+            return rows;
+        } else {
+            if (self.state.selectedRow != null) {
+                var index = $('table tbody tr', this.element).index(self.state.selectedRow);
+                if (typeof index == 'number') {
+                    var selectedRow = self.tableData.rows[index];
+                    if (typeof selectedRow != 'undefined') {
+                        return selectedRow;
+                    }
                 }
             }
         }
+
         return null;
     },
     goToPage: function(page) {
