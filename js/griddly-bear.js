@@ -212,7 +212,7 @@ $.widget('gb.grrr', {
                 }
             });
         } else {
-            this.element.attr("oncontextmenu","return false;"); // Disable right click context menu;
+            $('table', this.element).attr("oncontextmenu","return false;"); // Disable right click context menu;
             $(this.element).on('dblclick', 'tbody tr', function(){
                 self._selectRow($(this));
                 self.options.onSelect($(this));

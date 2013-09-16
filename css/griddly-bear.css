@@ -142,7 +142,7 @@
     cursor: pointer;
 }
 
-.gb-data-table {
+.gb-data-table table {
     /* Prevent data highlighting for double click */
     -webkit-touch-callout: none;
     -webkit-user-select: none; /* Webkit */
