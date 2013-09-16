@@ -11,7 +11,7 @@ $.widget('gb.grrr', {
     options: {
         columns: {},
         filters: {},
-        footer: null,
+        footer: {pagination: true},
         header: null,
         onSelect: function(target){},
         rowsPerPage: 10,
@@ -26,6 +26,7 @@ $.widget('gb.grrr', {
         isResizing: false,  // So we don't get race conditions.
         totalPages: 0,
         filtersOn: false,
+        selectedRow: null,
         cursor: {
             origin: null,
             position: null,
@@ -205,7 +206,7 @@ $.widget('gb.grrr', {
                     }
                     if (isClick) {
                         self._selectRow($(this));
-                        self.options.onSelect(self.selectedRow);
+                        self.options.onSelect(self.state.selectedRow);
                     }
                     self.state.cursor.origin = null;
                     self.state.cursor.position = null;
@@ -221,7 +222,7 @@ $.widget('gb.grrr', {
             }).on('mouseup', 'tbody tr', function(event) { // Simulated right click handler.
                 if (event.which === 3) {
                     self._selectRow($(this));
-                    self._showRowData(self.selectedRow);
+                    self._showRowData(self.state.selectedRow);
                 }
             });
         }
@@ -484,7 +485,13 @@ $.widget('gb.grrr', {
                     .addClass('gb-data-cell')
                     .attr('data-id', column)
                     .append(label)
-                    .append(row[column]);
+                    .append(
+                        self._formatColumnData(
+                            row[column],
+                            row,
+                            self.options.columns[index].format
+                        )
+                    );
                 for (var i in self.options.columns) {
                     if (self.options.columns[i].id == column &&
                         self.options.columns[i].primary != undefined &&
@@ -551,9 +558,9 @@ $.widget('gb.grrr', {
     _selectRow: function(target) {
         var self = this;
         self._hideRowData();
-        self.selectedRow = target;
+        self.state.selectedRow = target;
         $('table tbody tr', self.element).removeClass('gb-row-selected');
-        self.selectedRow.addClass('gb-row-selected');
+        self.state.selectedRow.addClass('gb-row-selected');
     },
     _onResize: function() {
         var self = this;
@@ -729,6 +736,18 @@ $.widget('gb.grrr', {
         $('.gb-additional-data', this.element).remove();
         $('table tbody tr', this.element).removeClass('gb-data-expand');
     },
+    _formatColumnData: function(data, rowData, format)
+    {
+        if (typeof format == 'undefined') {
+            return data;
+        }
+
+        if ($.isFunction(format)) {
+            return format(data, rowData);
+        }
+
+        return data;
+    },
     // public methods
     getRowData: function(id) {
         var self = this;
@@ -805,11 +824,13 @@ $.widget('gb.grrr', {
     },
     getSelectedRow: function() {
         var self = this;
-        var index = $('table tbody tr', this.element).index(self.selectedRow);
-        if (typeof index == 'number') {
-            var selectedRow = self.tableData.rows[index];
-            if (typeof selectedRow != 'undefined') {
-                return selectedRow;
+        if (self.state.selectedRow != null) {
+            var index = $('table tbody tr', this.element).index(self.state.selectedRow);
+            if (typeof index == 'number') {
+                var selectedRow = self.tableData.rows[index];
+                if (typeof selectedRow != 'undefined') {
+                    return selectedRow;
+                }
             }
         }
         return null;
