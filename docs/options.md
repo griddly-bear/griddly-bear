@@ -10,9 +10,9 @@ $('#grid').grrr({
 
 | Option        | Default Value           | Description  |
 | :------------- | :------------- | :----- |
-| [rowsPerPage](#rowsPerPage) | 10 | |
-| [rowsPerPageOptions](#rowsPerPageOptions) | [5,10,15] | |
-| [alternatingRows](#alternatingRows) | true | |
+| [rowsPerPage](#rowsperpage) | 10 | |
+| [rowsPerPageOptions](#rowsperpageoptions) | [5,10,15] | |
+| [alternatingRows](#alternatingrows) | true | |
 | [multiSelect](#multiselect)      | false | Enables the ability to select multiple rows at once |
 
 ## rowsPerPage
@@ -34,5 +34,5 @@ $('#grid').grrr({
 });
 ```
 
-When this is enabled, the [getSelectedRow() method](methods.md#getSelectedRow) with return an array of all
+When this is enabled, the [getSelectedRow() method](methods.md#getselectedrow) with return an array of all
 selected rows, whereas it returns an object of the selected row when `multiSelect` is false.
