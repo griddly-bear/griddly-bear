@@ -212,6 +212,27 @@
 }
 
 /*
+**  Footer Divs
+*/
+.gb-footer-left {
+    min-height: 1px;
+    width: 38%;
+    float: left;
+}
+
+.gb-footer-mid {
+    min-height: 1px;
+    width: 24%;
+    float: left;
+}
+
+.gb-footer-right {
+    min-height: 1px;
+    width: 38%;
+    float: left;
+}
+
+/*
 #   BUTTONS
 */
 .gb-button-box {

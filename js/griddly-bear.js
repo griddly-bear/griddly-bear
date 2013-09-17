@@ -232,6 +232,9 @@ $.widget('gb.grrr', {
             if (this.options.footer != null) {
                 var self = this;
                 var footer = $('<div />').addClass('gb-footer');
+                var left = $('<div />').addClass('gb-footer-left');
+                var mid = $('<div />').addClass('gb-footer-mid');
+                var right = $('<div />').addClass('gb-footer-right');
                 var buttonBox = $("<div />").addClass('gb-button-box');
 
                 if (typeof this.options.footer.buttons != 'undefined') {
@@ -240,12 +243,15 @@ $.widget('gb.grrr', {
                         buttonBox.append(btn);
                     });
                 }
-                var clearDiv = '<div class="gb-clear-both"></div>';
-                footer.append($('<div />').addClass('gb-pages'))
-                    .append(clearDiv)
-                    .append(buttonBox)
-                    .append($("<div />").addClass('gb-pagination'))
-                    .append(clearDiv);
+
+                footer.append(left);
+                footer.append(mid);
+                footer.append(right);
+
+                left.append(buttonBox);
+                mid.append($('<div />').addClass('gb-pages'));
+                right.append($("<div />").addClass('gb-pagination'));
+
                 this.element.append(footer);
             }
         }
