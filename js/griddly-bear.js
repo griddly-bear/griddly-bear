@@ -296,7 +296,7 @@ $.widget('gb.grrr', {
         var ul = $('<ul />');
         var el = $('<li />');
 
-        if (this.options.showRowsPerPage || false) {
+        if (this.options.showRowsPerPage) {
             var rowsPerPageOptions = $('<select />').addClass('gb-rows-per-page');
             $.each(this.options.rowsPerPageOptions, function(index, value) {
                 var rowOption = $('<option />')
