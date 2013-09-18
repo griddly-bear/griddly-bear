@@ -288,7 +288,7 @@ $.widget('gb.grrr', {
     _createPagination: function() {
         var self = this;
 
-        if (this.state.totalPages <= 1) {
+        if (this.state.rows < this.options.rowsPerPageOptions[0]) {
             return;
         }
 
@@ -296,34 +296,41 @@ $.widget('gb.grrr', {
         var ul = $('<ul />');
         var el = $('<li />');
 
-        var rowsPerPageOptions = $('<select />').addClass('gb-rows-per-page');
-        $.each(this.options.rowsPerPageOptions, function(index, value) {
-            var rowOption = $('<option />')
-                .attr('value', value)
-                .text(value);
-            if (value == self.options.rowsPerPage) {
-                rowOption.attr('selected', true);
-            }
-            rowsPerPageOptions.append(rowOption);
-        });
-        pagination.append(rowsPerPageOptions);
-
-        if (this.state.page > 1) {
-            var a = $('<a/>').attr({
-                href: '#',
-                class: 'gb-previous',
-                title: 'Previous Page'
-            }).text('<');
-
-            el.append(a);
-        } else {
-            el.text('<');
+        if (this.options.showRowsPerPage || false) {
+            var rowsPerPageOptions = $('<select />').addClass('gb-rows-per-page');
+            $.each(this.options.rowsPerPageOptions, function(index, value) {
+                var rowOption = $('<option />')
+                    .attr('value', value)
+                    .text(value);
+                if (value == self.options.rowsPerPage) {
+                    rowOption.attr('selected', true);
+                }
+                rowsPerPageOptions.append(rowOption);
+            });
         }
 
+        var tag = 'gb-previous';
+
+        if (this.state.page == 1) {
+            tag = 'gb-previous-disabled';
+        }
+
+        var a = $('<a/>').attr({
+            href: '#',
+            class: tag,
+            title: 'Previous Page'
+        }).text('<<');
+
+        el.append(a);
         ul.append(el);
 
         var start = Math.max(1, self.state.page - 2);
-        var end = Math.min(this.state.totalPages, self.state.page + 2);
+        var end = Math.min(this.state.totalPages, (self.state.page + (4-(self.state.page - start))));
+        var pages = end - start;
+
+        if (pages < this.state.totalPages) {
+            start = Math.max(1, (start - (4 - pages)));
+        }
 
         for (var i = start; i <= end; i++) {
             el = $('<li />');
@@ -344,20 +351,27 @@ $.widget('gb.grrr', {
         }
 
         el = $('<li/>');
-        if (this.state.page < this.state.totalPages) {
-            var a = $('<a/>').attr({
-                href: '#',
-                class: 'gb-next',
-                title: 'Next Page'
-            }).text('>');
 
-            el.append(a);
-        } else {
-            el.text('>');
+        tag = 'gb-next';
+
+        if(this.state.page == this.state.totalPages) {
+            tag = 'gb-next-disabled';
         }
+
+        var a = $('<a/>').attr({
+            href: '#',
+            class: tag,
+            title: 'Next Page'
+        }).text('>>');
+
+        el.append(a);
         ul.append(el);
 
         pagination.append(ul);
+
+        if(rowsPerPageOptions) {
+            pagination.append(rowsPerPageOptions);
+        }
 
         var pages = $("<div />")
             .addClass('db-pages-text')
