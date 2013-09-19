@@ -159,8 +159,7 @@
                 }
             }).on('change', '.gb-pagination select', function() {
                     var rowsPerPage = $(this).val();
-                    $('.gb-pagination select').val(rowsPerPage);
-                    self.options.rowsPerPage = rowsPerPage;
+                    $(this).children('.gb-pagination select').val(rowsPerPage);
                     self.options.rowsPerPage = rowsPerPage;
                     self.reloadGrid();
                 }).on('click', 'th a.gb-column-sort', function(e) {
@@ -297,7 +296,7 @@
         _createPagination: function() {
             var self = this;
 
-            $('.gb-footer-right').empty();
+            $(this).children('.gb-footer-right').empty();
 
             var pagination = $('<div/>').attr('class', 'gb-pagination');
             var ul = $('<ul />');
@@ -313,88 +312,106 @@
                 }
                 rowsPerPageOptions.append(rowOption);
             });
+            
             pagination.append(rowsPerPageOptions);
 
-            if (this.state.page > 1) {
+            if (self.state.totalPages > 1) {
+                var tag = 'gb-previous';
+
+                if (this.state.page == 1) {
+                    tag = 'gb-previous-disabled';
+                }
+
                 var a = $('<a/>').attr({
                     href: '#',
-                    class: 'gb-previous',
+                    class: tag,
                     title: 'Previous Page'
-                }).text('<');
+                }).text('<<');
 
                 el.append(a);
-            } else {
-                el.text('<');
-            }
+                ul.append(el);
 
-            ul.append(el);
+                var start = Math.max(1, self.state.page - 2);
+                var end = Math.min(this.state.totalPages, (self.state.page + (4-(self.state.page - start))));
+                var pages = end - start;
 
-            var start = Math.max(1, self.state.page - 2);
-            var end = Math.min(this.state.totalPages, self.state.page + 2);
-
-            for (var i = start; i <= end; i++) {
-                el = $('<li />');
-
-                if (i == self.state.page) {
-                    el.attr('class', 'gb-current').text(i);
-                } else {
-                    var a = $('<a/>').attr({
-                        href: '#',
-                        class: 'gb-page',
-                        title: 'Page ' + i,
-                        "data-page": i
-                    }).text(i);
-                    el.append(a);
+                if (pages < this.state.totalPages) {
+                    start = Math.max(1, (start - (4 - pages)));
                 }
 
-                ul.append(el);
-            }
+                for (var i = start; i <= end; i++) {
+                    el = $('<li />');
 
-            el = $('<li/>');
-            if (this.state.page < this.state.totalPages) {
+                    if (i == self.state.page) {
+                        el.attr('class', 'gb-current').text(i);
+                    } else {
+                        var a = $('<a/>').attr({
+                            href: '#',
+                            class: 'gb-page',
+                            title: 'Page ' + i,
+                            "data-page": i
+                        }).text(i);
+                        el.append(a);
+                    }
+
+                    ul.append(el);
+                }
+
+                el = $('<li/>');
+
+                tag = 'gb-next';
+
+                if(this.state.page == this.state.totalPages) {
+                    tag = 'gb-next-disabled';
+                }
+
                 var a = $('<a/>').attr({
                     href: '#',
-                    class: 'gb-next',
+                    class: tag,
                     title: 'Next Page'
-                }).text('>');
+                }).text('>>');
 
                 el.append(a);
-            } else {
-                el.text('>');
+                ul.append(el);
+
+                pagination.append(ul);
             }
-            ul.append(el);
 
-            pagination.append(ul);
+            if(rowsPerPageOptions) {
+                pagination.append(rowsPerPageOptions);
+            }
 
-            var pages = $("<div />")
-                .addClass('db-pages-text')
-                .html('Page ' + this.state.page + ' of ' + this.state.totalPages);
+            if (self.state.totalPages > 0) {
+                var pages = $("<div />")
+                    .addClass('db-pages-text')
+                    .html('Page ' + this.state.page + ' of ' + this.state.totalPages);
 
-            if (typeof this.options.footer != 'undefined') {
-                if (typeof this.options.footer == 'object' && this.options.footer != null) {
-                    if (typeof this.options.footer.pagination != 'undefined') {
-                        if (this.options.footer.pagination == true) {
-                            $('div.gb-footer div.gb-pagination', this.element).before(pagination);
-                            $('div.gb-footer div.gb-pagination:last', this.element).remove();
-                            $('div.gb-footer div.gb-pages', this.element).html('').append(pages);
+                if (typeof this.options.footer != 'undefined') {
+                    if (typeof this.options.footer == 'object' && this.options.footer != null) {
+                        if (typeof this.options.footer.pagination != 'undefined') {
+                            if (this.options.footer.pagination == true) {
+                                $('div.gb-footer div.gb-pagination', this.element).before(pagination);
+                                $('div.gb-footer div.gb-pagination:last', this.element).remove();
+                                $('div.gb-footer div.gb-pages', this.element).html('').append(pages);
+                            }
+                        }
+                    }
+                }
+
+                if (typeof this.options.header != 'undefined') {
+                    if (typeof this.options.header == 'object' && this.options.header != null) {
+                        if (typeof this.options.header.pagination != 'undefined') {
+                            if (this.options.header.pagination == true) {
+                                $('div.gb-header div.gb-pagination', this.element).after(pagination.clone());
+                                $('div.gb-header div.gb-pagination:first', this.element).remove();
+                                $('div.gb-header div.gb-pages', this.element).html('').append(pages.clone());
+                            }
                         }
                     }
                 }
             }
 
-            if (typeof this.options.header != 'undefined') {
-                if (typeof this.options.header == 'object' && this.options.header != null) {
-                    if (typeof this.options.header.pagination != 'undefined') {
-                        if (this.options.header.pagination == true) {
-                            $('div.gb-header div.gb-pagination', this.element).after(pagination.clone());
-                            $('div.gb-header div.gb-pagination:first', this.element).remove();
-                            $('div.gb-header div.gb-pages', this.element).html('').append(pages.clone());
-                        }
-                    }
-                }
-            }
-
-            $('.gb-footer-right').append(pagination);
+            $(this).children('.gb-footer-right').append(pagination);
         },
         _createTable: function() {
             var self = this;
