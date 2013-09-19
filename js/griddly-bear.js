@@ -25,6 +25,8 @@
             page: 1,
             rows: 0,
             isResizing: false,  // So we don't get race conditions.
+            lastResize: Date.now(),
+            width: $(window).width(),
             totalPages: 0,
             filtersOn: false,
             selectedRow: null,
@@ -62,6 +64,8 @@
                 this.state.page = 1;
                 this.reloadGrid();
             }
+
+            this.state.width = $(window).width();
         },
 
         // private methods
@@ -134,8 +138,12 @@
             var self = this;
 
             $(window).resize(function() {
+                self.state.width = $(window).width();
+
                 if (self.state.isResizing == false) {
-                    self._onResize();
+                    if (Date.now() > (self.state.lastResize + 500)) {
+                        self._onResize();
+                    }
                 }
             });
 
@@ -152,6 +160,7 @@
             }).on('change', '.gb-pagination select', function() {
                     var rowsPerPage = $(this).val();
                     $('.gb-pagination select').val(rowsPerPage);
+                    self.options.rowsPerPage = rowsPerPage;
                     self.options.rowsPerPage = rowsPerPage;
                     self.reloadGrid();
                 }).on('click', 'th a.gb-column-sort', function(e) {
@@ -288,9 +297,7 @@
         _createPagination: function() {
             var self = this;
 
-            if (this.state.totalPages <= 1) {
-                return;
-            }
+            $('.gb-footer-right').empty();
 
             var pagination = $('<div/>').attr('class', 'gb-pagination');
             var ul = $('<ul />');
@@ -387,7 +394,7 @@
                 }
             }
 
-            return pagination;
+            $('.gb-footer-right').append(pagination);
         },
         _createTable: function() {
             var self = this;
@@ -654,7 +661,10 @@
             }
             self.element.toggleClass('gb-layout-vertical', isVerticalLayout);
 
+            self._createPagination();
+
             self.state.isResizing = false;
+            self.state.lastResize = Date.now();
         },
         _getLayoutChangeWidth: function()
         {
