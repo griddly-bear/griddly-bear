@@ -21,27 +21,26 @@
             url: null,
             alternatingRows: true
         },
-        state: {
-            page: 1,
-            rows: 0,
-            isResizing: false,  // So we don't get race conditions.
-            lastResize: Date.now(),
-            width: $(window).width(),
-            totalPages: 0,
-            filtersOn: false,
-            selectedRow: null,
-            cursor: {
-                origin: null,
-                position: null,
-                tolerance: 10, // px
-                holdWait: 2000 // ms
-            }
-        },
 
         // widget methods
         _create: function() {
             this._super();
-
+            this.state = {
+                page: 1,
+                rows: 0,
+                isResizing: false,  // So we don't get race conditions.
+                lastResize: Date.now(),
+                width: $(window).width(),
+                totalPages: 0,
+                filtersOn: false,
+                selectedRow: null,
+                cursor: {
+                    origin: null,
+                    position: null,
+                    tolerance: 10, // px
+                    holdWait: 2000 // ms
+                }
+            };
             // minWidth value required for responsiveness
             for (var i = 0; i < this.options.columns.length; i++) {
                 if (typeof this.options.columns[i].minWidth == 'undefined') {
@@ -161,6 +160,7 @@
                     var rowsPerPage = $(this).val();
                     $(this).children('.gb-pagination select').val(rowsPerPage);
                     self.options.rowsPerPage = rowsPerPage;
+                    self.state.page = 1;
                     self.reloadGrid();
                 }).on('click', 'th a.gb-column-sort', function(e) {
                     e.preventDefault();
@@ -377,11 +377,10 @@
                 pagination.append(ul);
             }
 
-            if(rowsPerPageOptions) {
-                pagination.append(rowsPerPageOptions);
-            }
 
-            if (self.state.totalPages > 0) {
+            if (self.state.rows > self.options.rowsPerPageOptions[0]) {
+                pagination.append(rowsPerPageOptions);
+
                 var pages = $("<div />")
                     .addClass('db-pages-text')
                     .html('Page ' + this.state.page + ' of ' + this.state.totalPages);
