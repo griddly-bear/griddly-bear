@@ -297,6 +297,7 @@
             var self = this;
 
             $(this).children('.gb-footer-right').empty();
+            $('.gb-pagination', self.element).empty();
 
             var pagination = $('<div/>').attr('class', 'gb-pagination');
             var ul = $('<ul />');
