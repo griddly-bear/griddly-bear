@@ -296,7 +296,8 @@
         _createPagination: function() {
             var self = this;
 
-            $(this).children('.gb-footer-right').empty();
+            $('.gb-pagination', self.element).empty();
+            $('.gb-pages', self.element).empty();
 
             var pagination = $('<div/>').attr('class', 'gb-pagination');
             var ul = $('<ul />');
@@ -382,7 +383,7 @@
                 pagination.append(rowsPerPageOptions);
 
                 var pages = $("<div />")
-                    .addClass('db-pages-text')
+                    .addClass('gb-pages-text')
                     .html('Page ' + this.state.page + ' of ' + this.state.totalPages);
 
                 if (typeof this.options.footer != 'undefined') {
