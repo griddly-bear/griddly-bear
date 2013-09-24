@@ -528,9 +528,10 @@
                     var td = $('<td />');
                     var label = $('<span />');
                     label.addClass('gb-vertical-label').html(self.options.columns[index].title + ": ");
-
-                    switch(self.options.columns[index].dataType)
-                    {
+                    td
+                        .addClass('gb-data-cell')
+                        .attr('data-id', column);
+                    switch(self.options.columns[index].dataType) {
                         case 'boolean':
                             var primaryKey = null;
                             var checkbox = $('<div />').addClass('gb-checkbox');
@@ -548,24 +549,21 @@
 
                             input.attr('data-id', column);
                             if (primaryKey != null) {
+                                input.attr('name', primaryKey);
                                 input.attr('id', primaryKey);
                             }
                             else {
+                                input.attr('name', rowIndex);
                                 input.attr('id', rowIndex);
                             }
 
                             checkbox.append(input);
-                            td
-                                .addClass('gb-data-cell')
-                                .attr('data-id', column)
-                                .append(checkbox);
+                            td.append(checkbox);
 
                             break;
                         case 'string':
                         default:
                             td
-                                .addClass('gb-data-cell')
-                                .attr('data-id', column)
                                 .append(label)
                                 .append(
                                     self._formatColumnData(
