@@ -21,7 +21,8 @@
             sort: {},
             url: null,
             alternatingRows: true,
-            loadComplete: function(){}
+            loadComplete: function(){},
+            onColumnValueChanged: function(input, data){}
         },
 
         // widget methods
@@ -556,6 +557,10 @@
                                 input.attr('name', rowIndex);
                                 input.attr('id', rowIndex);
                             }
+
+                            input.on('change', function() {
+                                self.options.onColumnValueChanged(input, row)
+                            });
 
                             checkbox.append(input);
                             td.append(checkbox);
