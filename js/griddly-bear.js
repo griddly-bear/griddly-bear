@@ -22,7 +22,7 @@
             url: null,
             alternatingRows: true,
             loadComplete: function(){},
-            onColumnValueChanged: function(input, data){}
+            onColumnValueChanged: function(id, value){}
         },
 
         // widget methods
@@ -559,7 +559,10 @@
                             }
 
                             input.on('change', function() {
-                                self.options.onColumnValueChanged(input, row)
+                                self.options.onColumnValueChanged(
+                                    primaryKey != null ? primaryKey : rowIndex,
+                                    input.prop('checked')
+                                );
                             });
 
                             checkbox.append(input);
