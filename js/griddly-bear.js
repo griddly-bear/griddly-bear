@@ -552,8 +552,7 @@
                             if (primaryKey != null) {
                                 input.attr('name', primaryKey);
                                 input.attr('id', primaryKey);
-                            }
-                            else {
+                            } else {
                                 input.attr('name', rowIndex);
                                 input.attr('id', rowIndex);
                             }
