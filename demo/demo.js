@@ -88,7 +88,7 @@ $(function() {
             ]
         },
         onSelect: function (target) {
-            console.log('Selected Triggered.');
+            console.log(target);
         }
     });
 });
