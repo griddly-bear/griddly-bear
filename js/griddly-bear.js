@@ -215,7 +215,7 @@
                             }
                             if (isClick) {
                                 self._selectRow($(this));
-                                self.options.onSelect(self.state.selectedRow);
+                                self.options.onSelect(self.getSelectedRow());
                             }
                             self.state.cursor.origin = null;
                             self.state.cursor.position = null;
@@ -225,7 +225,7 @@
                 $('table', this.element).attr("oncontextmenu","return false;"); // Disable right click context menu;
                 $(this.element).on('dblclick', 'tbody tr', function(){
                     self._selectRow($(this));
-                    self.options.onSelect($(this));
+                    self.options.onSelect(self.getSelectedRow());
                 }).on('click', 'tbody tr', function() {
                         self._selectRow($(this));
                     }).on('mouseup', 'tbody tr', function(event) { // Simulated right click handler.
