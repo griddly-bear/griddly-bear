@@ -239,59 +239,53 @@
         _createFooter: function() {
             if (typeof this.options.footer != 'undefined') {
                 if (this.options.footer != null) {
-                    var self = this;
-                    var footer = $('<div />').addClass('gb-footer');
-                    var left = $('<div />').addClass('gb-footer-left');
-                    var mid = $('<div />').addClass('gb-footer-mid');
-                    var right = $('<div />').addClass('gb-footer-right');
-                    var buttonBox = $("<div />").addClass('gb-button-box');
-
-                    if (typeof this.options.footer.buttons != 'undefined') {
-                        $.each(this.options.footer.buttons, function(index, value){
-                            var btn = self._createButton(value);
-                            buttonBox.append(btn);
-                        });
-                    }
-
-                    footer.append(left);
-                    footer.append(mid);
-                    footer.append(right);
-
-                    left.append(buttonBox);
-                    mid.append($('<div />').addClass('gb-pages'));
-                    right.append($("<div />").addClass('gb-pagination'));
-
-                    this.element.append(footer);
+                    var cap = this._getCap(this.options.footer);
+                    cap.addClass('gb-footer');
+                    this.element.append(cap);
                 }
             }
         },
         _createHeader: function() {
             if (typeof this.options.header != 'undefined') {
                 if (this.options.header != null) {
-                    var self = this;
-                    var header = $('<div />').addClass('gb-header');
-                    var buttonBox = $("<div />").addClass('gb-button-box');
-
-                    if (typeof this.options.header.buttons != 'undefined') {
-                        $.each(this.options.header.buttons, function(index, value){
-                            var btn = self._createButton(value);
-                            buttonBox.append(btn);
-                        });
-                    }
-                    var clearDiv = '<div class="gb-clear-both"></div>';
-                    if (typeof this.options.header.title != 'undefined') {
-                        var title = $('<div />').addClass('gb-head-title').html(this.options.header.title);
-                        header.append(title).append(clearDiv);
-                    }
-
-                    header.append(buttonBox)
-                        .append($("<div />").addClass('gb-pagination'))
-                        .append(clearDiv)
-                        .append($('<div />').addClass('gb-pages'))
-                        .append(clearDiv);
-                    this.element.append(header);
+                    var cap = this._getCap(this.options.header);
+                    cap.addClass('gb-header');
+                    this.element.append(cap);
                 }
             }
+        },
+        _getCap: function(options) {
+            var self = this;
+            var cap = $('<div />').addClass('gb-cap');
+            var left = $('<div />').addClass('gb-cap-left');
+            var mid = $('<div />').addClass('gb-cap-mid');
+            var right = $('<div />').addClass('gb-cap-right');
+            var buttonBox = $("<div />").addClass('gb-button-box');
+
+            if (typeof options.buttons != 'undefined') {
+                $.each(options.buttons, function(index, value){
+                    var btn = self._createButton(value);
+                    buttonBox.append(btn);
+                });
+            }
+
+            var clearDiv = '<div class="gb-clear-both"></div>';
+            if (typeof options.title != 'undefined') {
+                var title = $('<div />').addClass('gb-head-title').html(options.title);
+                cap.append(title).append(clearDiv);
+            }
+
+            cap.append(left);
+            cap.append(mid);
+            cap.append(right);
+
+            left.append(buttonBox);
+            mid.append($('<div />').addClass('gb-pages'));
+            right.append($("<div />").addClass('gb-pagination'));
+
+            cap.append(clearDiv);
+
+            return cap;
         },
         _createPagination: function() {
             var self = this;
