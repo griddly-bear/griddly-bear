@@ -925,8 +925,6 @@
             }
         },
         reloadGrid: function() {
-            var height = $('table', this.element).height();
-            $('table', this.element).css('height', height + 'px');
             $('table tbody', this.element).html('<tr class="gb-filler"><td></td></tr>');
             $('table thead th', this.element).removeClass('gb-hidden');
             this._getRows();
