@@ -19,7 +19,12 @@
             rowsPerPageOptions: [5,10,15],
             sort: {},
             url: null,
-            alternatingRows: true
+            alternatingRows: true,
+            menuButtonIconClass: "icol-application-view-columns"
+        },
+        staticState: {
+            mobile: false,
+            collapseSize: -1
         },
 
         // widget methods
@@ -64,7 +69,7 @@
                 this.reloadGrid();
             }
 
-            this.state.width = $(window).width();
+            this.state.width = $(this.element).width();
         },
 
         // private methods
@@ -137,7 +142,7 @@
             var self = this;
 
             $(window).resize(function() {
-                self.state.width = $(window).width();
+                self.state.width = $(self.element).width();
 
                 if (self.state.isResizing == false) {
                     if (Date.now() > (self.state.lastResize + 500)) {
@@ -146,13 +151,30 @@
                 }
             });
 
+            $(this.element).on('click', '.gb-button.menuButton', function() {
+                var buttonBox = $(self.element).find(".gb-button-box");
+                var actions = buttonBox.find(".gb-button:not(.menuButton)");
+
+                if (!buttonBox.hasClass("open")) {
+                    actions.removeClass("hidden");
+                    buttonBox.addClass("open");
+                } else {
+                    actions.addClass("hidden");
+                    buttonBox.removeClass("open");
+                }
+            });
+
             $(this.element).on('click', 'div.gb-pagination ul li', function(e) {
                 e.preventDefault();
                 var link = $(this).children('a');
-                if (link.hasClass('gb-next')) {
+                if (link.hasClass('gb-first')) {
+                    self.firstPage();
+                } else if (link.hasClass('gb-next')) {
                     self.nextPage();
                 } else if (link.hasClass('gb-previous')) {
                     self.previousPage();
+                } else if (link.hasClass('gb-last')) {
+                    self.lastPage();
                 } else if (link.hasClass('gb-page')) {
                     self.goToPage(parseInt(link.attr('data-page')));
                 }
@@ -215,7 +237,7 @@
                             }
                             if (isClick) {
                                 self._selectRow($(this));
-                                self.options.onSelect(self.state.selectedRow);
+                                self.options.onSelect(self.getSelectedRow());
                             }
                             self.state.cursor.origin = null;
                             self.state.cursor.position = null;
@@ -225,7 +247,7 @@
                 $('table', this.element).attr("oncontextmenu","return false;"); // Disable right click context menu;
                 $(this.element).on('dblclick', 'tbody tr', function(){
                     self._selectRow($(this));
-                    self.options.onSelect($(this));
+                    self.options.onSelect(self.getSelectedRow());
                 }).on('click', 'tbody tr', function() {
                         self._selectRow($(this));
                     }).on('mouseup', 'tbody tr', function(event) { // Simulated right click handler.
@@ -251,6 +273,11 @@
                             var btn = self._createButton(value);
                             buttonBox.append(btn);
                         });
+
+                        var menuButtonIcon = $("<i />").addClass("gb-button-icon").addClass(self.options.menuButtonIconClass);
+                        var menuButton = $("<button />").addClass("gb-button").addClass("menuButton").attr("title","Actions");
+                        menuButton.append(menuButtonIcon);
+                        buttonBox.append(menuButton);
                     }
 
                     footer.append(left);
@@ -296,7 +323,8 @@
         _createPagination: function() {
             var self = this;
 
-            $(this).children('.gb-footer-right').empty();
+            $('.gb-pagination', self.element).empty();
+            $('.gb-pages', self.element).empty();
 
             var pagination = $('<div/>').attr('class', 'gb-pagination');
             var ul = $('<ul />');
@@ -316,13 +344,29 @@
             pagination.append(rowsPerPageOptions);
 
             if (self.state.totalPages > 1) {
-                var tag = 'gb-previous';
+                var tag = 'gb-first';
+
+                if (this.state.page == 1) {
+                    tag = 'gb-first-disabled';
+                }
+
+                var a = $('<a/>').attr({
+                    href: '#',
+                    class: tag,
+                    title: 'First Page'
+                }).text('|<');
+
+                el.append(a);
+                ul.append(el);
+
+                el = $('<li />');
+                tag = 'gb-previous';
 
                 if (this.state.page == 1) {
                     tag = 'gb-previous-disabled';
                 }
 
-                var a = $('<a/>').attr({
+                a = $('<a/>').attr({
                     href: '#',
                     class: tag,
                     title: 'Previous Page'
@@ -343,14 +387,14 @@
                     el = $('<li />');
 
                     if (i == self.state.page) {
-                        el.attr('class', 'gb-current').text(i);
+                        el.attr('class', 'gb-current').text(i).addClass("page-link");
                     } else {
                         var a = $('<a/>').attr({
                             href: '#',
                             class: 'gb-page',
                             title: 'Page ' + i,
                             "data-page": i
-                        }).text(i);
+                        }).text(i).addClass("page-link");
                         el.append(a);
                     }
 
@@ -358,18 +402,33 @@
                 }
 
                 el = $('<li/>');
-
                 tag = 'gb-next';
 
                 if(this.state.page == this.state.totalPages) {
                     tag = 'gb-next-disabled';
                 }
 
-                var a = $('<a/>').attr({
+                a = $('<a/>').attr({
                     href: '#',
                     class: tag,
                     title: 'Next Page'
                 }).text('>>');
+
+                el.append(a);
+                ul.append(el);
+
+                el = $('<li/>');
+                tag = 'gb-last';
+
+                if(this.state.page == this.state.totalPages) {
+                    tag = 'gb-last-disabled';
+                }
+
+                a = $('<a/>').attr({
+                    href: '#',
+                    class: tag,
+                    title: 'Last Page'
+                }).text('>|');
 
                 el.append(a);
                 ul.append(el);
@@ -382,7 +441,7 @@
                 pagination.append(rowsPerPageOptions);
 
                 var pages = $("<div />")
-                    .addClass('db-pages-text')
+                    .addClass('gb-pages-text')
                     .html('Page ' + this.state.page + ' of ' + this.state.totalPages);
 
                 if (typeof this.options.footer != 'undefined') {
@@ -411,6 +470,31 @@
             }
 
             $(this).children('.gb-footer-right').append(pagination);
+
+            var buttonBox = $(self.element).find(".gb-button-box");
+            var actions = buttonBox.find(".gb-button:not(.menuButton)");
+            var menuButton = buttonBox.find(".gb-button.menuButton");
+            var pagination = $(self.element).find(".gb-pagination > ul");
+
+            if (self.staticState.mobile) {
+                $(self.element).find(".gb-footer-mid").addClass("mobile");
+                $(self.element).find(".gb-pagination").addClass("mobile");
+
+                buttonBox.addClass("mobile");
+                actions.addClass("hidden").addClass("mobile");
+                menuButton.show();
+
+                pagination.find(".page-link").hide();
+                $(self.element).find(".gb-rows-per-page").hide();
+            } else {
+                $(self.element).find(".gb-footer-mid").removeClass("mobile");
+                $(self.element).find(".gb-pagination").removeClass("mobile");
+                buttonBox.removeClass("mobile");
+                actions.removeClass("hidden").removeClass("mobile");
+                menuButton.hide();
+                pagination.find(".page-link").show();
+                $(self.element).find(".gb-rows-per-page").show();
+            }
         },
         _createTable: function() {
             var self = this;
@@ -677,7 +761,28 @@
             }
             self.element.toggleClass('gb-layout-vertical', isVerticalLayout);
 
-            self._createPagination();
+            var footerWidth = $(self.element).find(".gb-footer").width();
+            var totalWidth = 0;
+
+            $(self.element).find(".gb-footer").children("div").each(function() {
+                totalWidth += $(this).width();
+            });
+
+            totalWidth = totalWidth * 1.10;
+
+            if (totalWidth > self.staticState.collapseSize) {
+                self.staticState.collapseSize = totalWidth;
+            }
+
+            if (footerWidth < totalWidth) {
+                self.staticState.mobile = true;
+            } else if (self.staticState.mobile && footerWidth > self.staticState.collapseSize) {
+                self.staticState.mobile = false;
+            }
+
+            setTimeout(function() {
+                self._createPagination();
+            }, 500);
 
             self.state.isResizing = false;
             self.state.lastResize = Date.now();
@@ -911,6 +1016,13 @@
 
             this.reloadGrid();
         },
+        lastPage: function() {
+            if (this.state.page < this.state.totalPages) {
+                console.log(this.state.totalPages);
+                this.state.page = this.state.totalPages;
+                this.reloadGrid();
+            }
+        },
         nextPage: function() {
             if (this.state.page < this.state.totalPages) {
                 this.state.page++;
@@ -920,6 +1032,12 @@
         previousPage: function() {
             if (this.state.page > 1) {
                 this.state.page--;
+                this.reloadGrid();
+            }
+        },
+        firstPage: function() {
+            if (this.state.page > 1) {
+                this.state.page = 1;
                 this.reloadGrid();
             }
         },
