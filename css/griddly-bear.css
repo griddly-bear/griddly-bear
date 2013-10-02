@@ -183,7 +183,7 @@
     text-decoration: none;
     background-color: #ffffff;
     border: 1px solid #dddddd;
-    padding: 5.5px 11px;
+    padding: 5.5px 10px;
     font-size: 13px;
 }
 
@@ -194,7 +194,7 @@
     border: 1px solid #dddddd;
     color: #999999;
     cursor: default;
-    padding: 5.5px 11px;
+    padding: 5.5px 10px;
     font-size: 13px;;
 }
 
@@ -241,10 +241,10 @@
     text-decoration: none;
     background-color: #ffffff;
     border: 1px solid #dddddd;
-    padding: 4px 2px;
+    padding: 4px 1px;
     font-size: 13px;
     margin-top: 4px;
-    margin-left: 10px;
+    margin-left: 2.5px;
 }
 
 .gb-pagination > select {
@@ -258,23 +258,23 @@
 }
 
 /*
-**  Footer Divs
+**  Cap Divs
 */
-.gb-footer-left {
+.gb-cap-left {
     min-height: 1px;
-    width: 38%;
+    width: 40%;
     float: left;
 }
 
-.gb-footer-mid {
+.gb-cap-mid {
     min-height: 1px;
-    width: 24%;
+    width: 16%;
     float: left;
 }
 
-.gb-footer-right {
+.gb-cap-right {
     min-height: 1px;
-    width: 38%;
+    width: 44%;
     float: left;
 }
 
@@ -287,16 +287,12 @@
 
 .gb-button-box .gb-button {
     background:#FFFFFF;
-    border:1px solid #dbdbdb;
+    border:none !important;
     vertical-align:middle;
-    border-radius:5px;
-    -moz-border-radius:5px;
-    -webkit-border-radius:5px;
-    -html-border-radius:5px;
-    margin-right:10px;
+    margin: 4px 4px 4px 4px;
     padding:3px;
-    box-shadow: 1px 1px 1px #888888;
-    -moz-box-shadow: 1px 1px 1px #888888;
+    box-shadow: none;
+    -moz-box-shadow: none;
     cursor:pointer;
 }
 
