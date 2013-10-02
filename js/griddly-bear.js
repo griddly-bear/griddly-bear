@@ -6,7 +6,8 @@
             primary: false,
             hidden: false,
             sortable: true,
-            filterable: true
+            filterable: true,
+            dataType: null
         },
         options: {
             columns: {},
@@ -20,7 +21,9 @@
             sort: {},
             url: null,
             alternatingRows: true,
-            menuButtonIconClass: "icol-application-view-columns"
+            menuButtonIconClass: "icol-application-view-columns",
+            loadComplete: function(){},
+            onColumnValueChanged: function(id, value){}
         },
         staticState: {
             mobile: false,
@@ -261,64 +264,58 @@
         _createFooter: function() {
             if (typeof this.options.footer != 'undefined') {
                 if (this.options.footer != null) {
-                    var self = this;
-                    var footer = $('<div />').addClass('gb-footer');
-                    var left = $('<div />').addClass('gb-footer-left');
-                    var mid = $('<div />').addClass('gb-footer-mid');
-                    var right = $('<div />').addClass('gb-footer-right');
-                    var buttonBox = $("<div />").addClass('gb-button-box');
-
-                    if (typeof this.options.footer.buttons != 'undefined') {
-                        $.each(this.options.footer.buttons, function(index, value){
-                            var btn = self._createButton(value);
-                            buttonBox.append(btn);
-                        });
-
-                        var menuButtonIcon = $("<i />").addClass("gb-button-icon").addClass(self.options.menuButtonIconClass);
-                        var menuButton = $("<button />").addClass("gb-button").addClass("menuButton").attr("title","Actions");
-                        menuButton.append(menuButtonIcon);
-                        buttonBox.append(menuButton);
-                    }
-
-                    footer.append(left);
-                    footer.append(mid);
-                    footer.append(right);
-
-                    left.append(buttonBox);
-                    mid.append($('<div />').addClass('gb-pages'));
-                    right.append($("<div />").addClass('gb-pagination'));
-
-                    this.element.append(footer);
+                    var cap = this._getCap(this.options.footer);
+                    cap.addClass('gb-footer');
+                    this.element.append(cap);
                 }
             }
         },
         _createHeader: function() {
             if (typeof this.options.header != 'undefined') {
                 if (this.options.header != null) {
-                    var self = this;
-                    var header = $('<div />').addClass('gb-header');
-                    var buttonBox = $("<div />").addClass('gb-button-box');
-
-                    if (typeof this.options.header.buttons != 'undefined') {
-                        $.each(this.options.header.buttons, function(index, value){
-                            var btn = self._createButton(value);
-                            buttonBox.append(btn);
-                        });
-                    }
-                    var clearDiv = '<div class="gb-clear-both"></div>';
-                    if (typeof this.options.header.title != 'undefined') {
-                        var title = $('<div />').addClass('gb-head-title').html(this.options.header.title);
-                        header.append(title).append(clearDiv);
-                    }
-
-                    header.append(buttonBox)
-                        .append($("<div />").addClass('gb-pagination'))
-                        .append(clearDiv)
-                        .append($('<div />').addClass('gb-pages'))
-                        .append(clearDiv);
-                    this.element.append(header);
+                    var cap = this._getCap(this.options.header);
+                    cap.addClass('gb-header');
+                    this.element.append(cap);
                 }
             }
+        },
+        _getCap: function(options) {
+            var self = this;
+            var cap = $('<div />').addClass('gb-cap');
+            var left = $('<div />').addClass('gb-cap-left');
+            var mid = $('<div />').addClass('gb-cap-mid');
+            var right = $('<div />').addClass('gb-cap-right');
+            var buttonBox = $("<div />").addClass('gb-button-box');
+
+            if (typeof options.buttons != 'undefined') {
+                $.each(options.buttons, function(index, value){
+                    var btn = self._createButton(value);
+                    buttonBox.append(btn);
+                });
+
+                var menuButtonIcon = $("<i />").addClass("gb-button-icon").addClass(self.options.menuButtonIconClass);
+                var menuButton = $("<button />").addClass("gb-button").addClass("menuButton").attr("title","Actions");
+                menuButton.append(menuButtonIcon);
+                buttonBox.append(menuButton);
+            }
+
+            var clearDiv = '<div class="gb-clear-both"></div>';
+            if (typeof options.title != 'undefined') {
+                var title = $('<div />').addClass('gb-head-title').html(options.title);
+                cap.append(title).append(clearDiv);
+            }
+
+            cap.append(left);
+            cap.append(mid);
+            cap.append(right);
+
+            left.append(buttonBox);
+            mid.append($('<div />').addClass('gb-pages'));
+            right.append($("<div />").addClass('gb-pagination'));
+
+            cap.append(clearDiv);
+
+            return cap;
         },
         _createPagination: function() {
             var self = this;
@@ -469,7 +466,7 @@
                 }
             }
 
-            $(this).children('.gb-footer-right').append(pagination);
+            $(this).children('.gb-cap-right').append(pagination);
 
             var buttonBox = $(self.element).find(".gb-button-box");
             var actions = buttonBox.find(".gb-button:not(.menuButton)");
@@ -477,7 +474,7 @@
             var pagination = $(self.element).find(".gb-pagination > ul");
 
             if (self.staticState.mobile) {
-                $(self.element).find(".gb-footer-mid").addClass("mobile");
+                $(self.element).find(".gb-cap-mid").addClass("mobile");
                 $(self.element).find(".gb-pagination").addClass("mobile");
 
                 buttonBox.addClass("mobile");
@@ -487,7 +484,7 @@
                 pagination.find(".page-link").hide();
                 $(self.element).find(".gb-rows-per-page").hide();
             } else {
-                $(self.element).find(".gb-footer-mid").removeClass("mobile");
+                $(self.element).find(".gb-cap-mid").removeClass("mobile");
                 $(self.element).find(".gb-pagination").removeClass("mobile");
                 buttonBox.removeClass("mobile");
                 actions.removeClass("hidden").removeClass("mobile");
@@ -590,10 +587,10 @@
                 columns.push($(this).attr('data-id'));
             });
 
-            $.each(data.rows, function(index, row){
+            $.each(data.rows, function(rowIndex, row){
                 var tr = $('<tr />');
                 tr.addClass('gb-data-row')
-                if (self.options.alternatingRows && !(index % 2)) {
+                if (self.options.alternatingRows && !(rowIndex % 2)) {
                     tr.addClass('alt');
                 }
                 tableBody.append(tr);
@@ -601,7 +598,7 @@
 
                 if (self.options.multiSelect) {
                     var td = $('<td />');
-                    var checkbox = $('<input/>').attr({type: 'checkbox', id: index});
+                    var checkbox = $('<input/>').attr({type: 'checkbox', id: rowIndex});
                     td.append(checkbox);
                     lastRow.append(td);
                 }
@@ -612,15 +609,55 @@
                     label.addClass('gb-vertical-label').html(self.options.columns[index].title + ": ");
                     td
                         .addClass('gb-data-cell')
-                        .attr('data-id', column)
-                        .append(label)
-                        .append(
-                            self._formatColumnData(
-                                row[column],
-                                row,
-                                self.options.columns[index].format
-                            )
-                        );
+                        .attr('data-id', column);
+                    switch(self.options.columns[index].dataType) {
+                        case 'boolean':
+                            var primaryKey = null;
+                            var checkbox = $('<div />').addClass('gb-checkbox');
+                            var input = $('<input/>').attr({ type: 'checkbox' });
+
+                            if (row[column]) {
+                                input.attr('checked', 'checked');
+                            }
+
+                            $.each(columns, function(index, column) {
+                                if (self.options.columns[index].primary == true) {
+                                    primaryKey = row[column];
+                                }
+                            });
+
+                            input.attr('data-id', column);
+                            if (primaryKey != null) {
+                                input.attr('name', primaryKey);
+                                input.attr('id', primaryKey);
+                            } else {
+                                input.attr('name', rowIndex);
+                                input.attr('id', rowIndex);
+                            }
+
+                            input.on('change', function() {
+                                self.options.onColumnValueChanged(
+                                    primaryKey != null ? primaryKey : rowIndex,
+                                    input.prop('checked')
+                                );
+                            });
+
+                            checkbox.append(input);
+                            td.append(checkbox);
+
+                            break;
+                        case 'string':
+                        default:
+                            td
+                                .append(label)
+                                .append(
+                                    self._formatColumnData(
+                                        row[column],
+                                        row,
+                                        self.options.columns[index].format
+                                    )
+                                );
+                    }
                     for (var i in self.options.columns) {
                         if (self.options.columns[i].id == column &&
                             self.options.columns[i].primary != undefined &&
@@ -636,6 +673,7 @@
                 });
             });
             this._createPagination();
+            this.options.loadComplete();
         },
         _getRows: function() {
             var self = this;
@@ -764,11 +802,11 @@
             var footerWidth = $(self.element).find(".gb-footer").width();
             var totalWidth = 0;
 
-            $(self.element).find(".gb-footer").children("div").each(function() {
+            $(self.element).find(".gb-footer").children("div:not(.gb-clear-both)").each(function() {
                 totalWidth += $(this).width();
             });
 
-            totalWidth = totalWidth * 1.10;
+            totalWidth = totalWidth * 1.15;
 
             if (totalWidth > self.staticState.collapseSize) {
                 self.staticState.collapseSize = totalWidth;
@@ -1042,8 +1080,6 @@
             }
         },
         reloadGrid: function() {
-            var height = $('table', this.element).height();
-            $('table', this.element).css('height', height + 'px');
             $('table tbody', this.element).html('<tr class="gb-filler"><td></td></tr>');
             $('table thead th', this.element).removeClass('gb-hidden');
             this._getRows();
