@@ -6,7 +6,8 @@
             primary: false,
             hidden: false,
             sortable: true,
-            filterable: true
+            filterable: true,
+            dataType: null
         },
         options: {
             columns: {},
@@ -19,7 +20,9 @@
             rowsPerPageOptions: [5,10,15],
             sort: {},
             url: null,
-            alternatingRows: true
+            alternatingRows: true,
+            loadComplete: function(){},
+            onColumnValueChanged: function(id, value){}
         },
 
         // widget methods
@@ -501,10 +504,10 @@
                 columns.push($(this).attr('data-id'));
             });
 
-            $.each(data.rows, function(index, row){
+            $.each(data.rows, function(rowIndex, row){
                 var tr = $('<tr />');
                 tr.addClass('gb-data-row')
-                if (self.options.alternatingRows && !(index % 2)) {
+                if (self.options.alternatingRows && !(rowIndex % 2)) {
                     tr.addClass('alt');
                 }
                 tableBody.append(tr);
@@ -512,7 +515,7 @@
 
                 if (self.options.multiSelect) {
                     var td = $('<td />');
-                    var checkbox = $('<input/>').attr({type: 'checkbox', id: index});
+                    var checkbox = $('<input/>').attr({type: 'checkbox', id: rowIndex});
                     td.append(checkbox);
                     lastRow.append(td);
                 }
@@ -523,15 +526,55 @@
                     label.addClass('gb-vertical-label').html(self.options.columns[index].title + ": ");
                     td
                         .addClass('gb-data-cell')
-                        .attr('data-id', column)
-                        .append(label)
-                        .append(
-                            self._formatColumnData(
-                                row[column],
-                                row,
-                                self.options.columns[index].format
-                            )
-                        );
+                        .attr('data-id', column);
+                    switch(self.options.columns[index].dataType) {
+                        case 'boolean':
+                            var primaryKey = null;
+                            var checkbox = $('<div />').addClass('gb-checkbox');
+                            var input = $('<input/>').attr({ type: 'checkbox' });
+
+                            if (row[column]) {
+                                input.attr('checked', 'checked');
+                            }
+
+                            $.each(columns, function(index, column) {
+                                if (self.options.columns[index].primary == true) {
+                                    primaryKey = row[column];
+                                }
+                            });
+
+                            input.attr('data-id', column);
+                            if (primaryKey != null) {
+                                input.attr('name', primaryKey);
+                                input.attr('id', primaryKey);
+                            } else {
+                                input.attr('name', rowIndex);
+                                input.attr('id', rowIndex);
+                            }
+
+                            input.on('change', function() {
+                                self.options.onColumnValueChanged(
+                                    primaryKey != null ? primaryKey : rowIndex,
+                                    input.prop('checked')
+                                );
+                            });
+
+                            checkbox.append(input);
+                            td.append(checkbox);
+
+                            break;
+                        case 'string':
+                        default:
+                            td
+                                .append(label)
+                                .append(
+                                    self._formatColumnData(
+                                        row[column],
+                                        row,
+                                        self.options.columns[index].format
+                                    )
+                                );
+                    }
                     for (var i in self.options.columns) {
                         if (self.options.columns[i].id == column &&
                             self.options.columns[i].primary != undefined &&
@@ -547,6 +590,7 @@
                 });
             });
             this._createPagination();
+            this.options.loadComplete();
         },
         _getRows: function() {
             var self = this;
