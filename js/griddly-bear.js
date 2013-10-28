@@ -7,6 +7,7 @@
             hidden: false,
             sortable: true,
             filterable: true,
+            filterOptions: {'placeholder': 'Search...'},
             dataType: null
         },
         options: {
@@ -553,7 +554,7 @@
                         'type': 'text',
                         'name': 'filter[]',
                         'data-id': column.id,
-                        'placeholder': 'Search...'})
+                        'placeholder': column.filterOptions.placeholder})
                         .addClass('filter');
                     if (self.state.filtersOn == false) {
                         filter.hide();
