@@ -15,6 +15,7 @@
             footer: {pagination: true},
             header: null,
             onSelect: function(target){},
+            onFilter: function(filters){},
             multiSelect: false,
             rowsPerPage: 10,
             rowsPerPageOptions: [5,10,15],
@@ -720,6 +721,9 @@
                 self._onResize();
                 $('table', self.element).css('height', '');
                 $('.gb-filler', self.element).remove();
+                if (Object.keys(params['filters']).length > 0) {
+                    self.options.onFilter(params['filters']);
+                }
             });
         },
         _selectRow: function(target) {
