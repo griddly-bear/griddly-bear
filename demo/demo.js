@@ -7,7 +7,8 @@ $(function() {
                 id: "name.prefix",
                 title: "Prefix",
                 minWidth: 50,
-                required: false
+                required: false,
+                filterOptions: {placeholder: 'Custom Placeholder'}
             },
             {
                 id: "name.first",
