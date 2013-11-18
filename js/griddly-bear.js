@@ -25,7 +25,8 @@
             alternatingRows: true,
             menuButtonIconClass: "icol-application-view-columns",
             loadComplete: function(){},
-            onColumnValueChanged: function(id, value){}
+            onColumnValueChanged: function(id, value){},
+            formatRow: function(row){return row}
         },
         staticState: {
             mobile: false,
@@ -590,6 +591,7 @@
             });
 
             $.each(data.rows, function(rowIndex, row){
+                row = self.options.formatRow(row);
                 var tr = $('<tr />');
                 tr.addClass('gb-data-row')
                 if (self.options.alternatingRows && !(rowIndex % 2)) {

@@ -10,10 +10,26 @@ $('#grid').grrr({
 
 | Option        | Default Value           | Description  |
 | :------------- | :------------- | :----- |
+| [formatRow](#formatrow) ||Allows formatting rows before rendering in the grid |
 | [rowsPerPage](#rowsperpage) | 10 | |
 | [rowsPerPageOptions](#rowsperpageoptions) | [5,10,15] | |
 | [alternatingRows](#alternatingrows) | true | |
 | [multiSelect](#multiselect)      | false | Enables the ability to select multiple rows at once |
+
+## formatRow
+
+Allows formatting a row value before it is rendered in the grid. Example: 
+
+```js
+$('#grid').grrr({
+    formatRow: function(data) {
+        data.status = data.status.toUpperCase();
+        return data;
+    }
+});
+```
+
+This example will transform the value in `data.status` to all upper case characters, then return the row for rendering.
 
 ## rowsPerPage
 
