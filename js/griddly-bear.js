@@ -601,7 +601,7 @@
                 var lastRow = $('tbody tr.gb-data-row', self.element).last();
 
                 if (self.options.multiSelect) {
-                    var td = $('<td />');
+                    var td = $('<td />').attr('class', 'gb-data-cell');
                     var checkbox = $('<input/>').attr({type: 'checkbox', id: rowIndex});
                     td.append(checkbox);
                     lastRow.append(td);
