@@ -26,7 +26,10 @@
             menuButtonIconClass: "icol-application-view-columns",
             loadComplete: function(){},
             onColumnValueChanged: function(id, value){},
-            formatRow: function(row){return row}
+            formatRow: function(row){return row},
+            getDataOnInitialLoad: true,
+            getInitialDataOnSubsequentEventType: null,
+            getInitialDataOnSubsequentEventScope: null
         },
         staticState: {
             mobile: false,
@@ -45,6 +48,7 @@
                 totalPages: 0,
                 filtersOn: false,
                 selectedRow: null,
+                gridInitialLoad: false,
                 cursor: {
                     origin: null,
                     position: null,
@@ -65,7 +69,21 @@
             this._createFooter();
             this._createEvents();
 
-            this._getRows();
+            if(this.options.getDataOnInitialLoad) {
+                this._getRows();
+                this.state.gridInitialLoad = true;
+            }
+
+            var self = this;
+
+            if(self.options.getInitialDataOnSubsequentEventType && self.options.getInitialDataOnSubsequentEventScope) {
+                $(self.options.getInitialDataOnSubsequentEventScope).on(self.options.getInitialDataOnSubsequentEventType, function() {
+                    if(!self.state.gridInitialLoad) {
+                        self._getRows();
+                        self.state.gridInitialLoad = true;
+                    }
+                })
+            }
         },
         _setOption: function(key, value) {
             this._super(key, value);
@@ -160,7 +178,6 @@
             $(this.element).on('click', '.gb-button.menuButton', function() {
                 var buttonBox = $(self.element).find(".gb-button-box");
                 var actions = buttonBox.find(".gb-button:not(.menuButton)");
-
                 if (!buttonBox.hasClass("open")) {
                     actions.removeClass("hidden");
                     buttonBox.addClass("open");
@@ -340,7 +357,7 @@
                 }
                 rowsPerPageOptions.append(rowOption);
             });
-            
+
             pagination.append(rowsPerPageOptions);
 
             if (self.state.totalPages > 1) {
@@ -706,7 +723,8 @@
 
             $.each(this.options.filters, function(filterColumn, filter) {
                 if ($.inArray(filterColumn, params.columns) > -1
-                    && (typeof filter === 'string' || typeof filter === 'number' || typeof filter === 'boolean')) {
+                    && (typeof filter === 'string' || typeof filter === 'number'
+                    || typeof filter === 'boolean' || typeof filter === 'object')) {
                     params['filters'][filterColumn] = filter;
                 }
             });
@@ -1023,6 +1041,21 @@
         getSelectedRow: function() {
             var self = this;
 
+            if (self.state.selectedRow != null) {
+                var index = $('table tbody tr', this.element).index(self.state.selectedRow);
+                if (typeof index == 'number') {
+                    var selectedRow = self.tableData.rows[index];
+                    if (typeof selectedRow != 'undefined') {
+                        return selectedRow;
+                    }
+                }
+            }
+
+            return null;
+        },
+        getSelectedRows: function() {
+            var self = this;
+
             if (self.options.multiSelect) {
                 var rows = [];
                 $.each(
@@ -1036,16 +1069,6 @@
                 );
 
                 return rows;
-            } else {
-                if (self.state.selectedRow != null) {
-                    var index = $('table tbody tr', this.element).index(self.state.selectedRow);
-                    if (typeof index == 'number') {
-                        var selectedRow = self.tableData.rows[index];
-                        if (typeof selectedRow != 'undefined') {
-                            return selectedRow;
-                        }
-                    }
-                }
             }
 
             return null;
@@ -1063,7 +1086,6 @@
         },
         lastPage: function() {
             if (this.state.page < this.state.totalPages) {
-                console.log(this.state.totalPages);
                 this.state.page = this.state.totalPages;
                 this.reloadGrid();
             }
@@ -1090,6 +1112,27 @@
             $('table tbody', this.element).html('<tr class="gb-filler"><td></td></tr>');
             $('table thead th', this.element).removeClass('gb-hidden');
             this._getRows();
+        },
+        addFilter: function(column)
+        {
+            this.addFilters([column]);
+        },
+        addFilters: function(filterArray)
+        {
+            var filters = this.options.filters;
+            $.each(filterArray, function(i, column){
+                if (column.type != "==") {
+                    filters[column.column] = {type: column.type, value: column.value };
+                } else {
+                    //Default is filtered as a "like" query with wildcards on both ends
+                    filters[column.column] = column.value;
+                }
+            });
+            this.option('filters', filters);
+        },
+        clearFilters: function()
+        {
+            this.option('filters', []);
         },
         toggleFilters: function()
         {
