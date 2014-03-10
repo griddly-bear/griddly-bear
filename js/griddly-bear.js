@@ -24,7 +24,7 @@
             url: null,
             alternatingRows: true,
             menuButtonIconClass: "icol-application-view-columns",
-            loadComplete: function(){},
+            loadComplete: function(rows){},
             onColumnValueChanged: function(id, value){},
             formatRow: function(row){return row},
             getDataOnInitialLoad: true,
@@ -694,7 +694,7 @@
                 });
             });
             this._createPagination();
-            this.options.loadComplete();
+            this.options.loadComplete(data.rows);
         },
         _getRows: function() {
             var self = this;
