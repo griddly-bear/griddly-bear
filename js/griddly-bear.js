@@ -11,7 +11,7 @@
             dataType: null
         },
         options: {
-            columns: {},
+            columns: [],
             filters: {},
             footer: {pagination: true},
             header: null,
@@ -23,7 +23,9 @@
             sort: {},
             url: null,
             alternatingRows: true,
+            columnSelector: false,
             menuButtonIconClass: "icol-application-view-columns",
+            columnPickerIconClass: "icol-application-view-columns",
             loadComplete: function(rows){},
             onColumnValueChanged: function(id, value){},
             formatRow: function(row){return row},
@@ -283,12 +285,87 @@
         },
         _createFooter: function() {
             if (typeof this.options.footer != 'undefined') {
+
+                if(this.options.columnSelector) {
+                    this._createColumnPicker();
+                }
+
                 if (this.options.footer != null) {
                     var cap = this._getCap(this.options.footer);
                     cap.addClass('gb-footer');
                     this.element.append(cap);
                 }
             }
+        },
+        _createColumnPicker: function() {
+            var _this = this;
+            //build the column picker dialog
+            this._createColumnPickerDialog();
+            //add button to footer
+            if(typeof this.options.footer.buttons == "undefined") {
+                this.options.footer.buttons = [];
+            }
+            this.options.footer.buttons.unshift({
+                icon: {
+                    attributes: {
+                        class: [this.options.columnPickerIconClass]
+                    }
+                },
+                title: 'Show/Hide Columns',
+                click: function(e) {
+                    _this._toggleColumnPickerDialog();
+                }
+            });
+        },
+        _createColumnPickerDialog: function(){
+            var _this = this;
+            this.columnPickerDialog = $('<div></div>')
+                .addClass('gb-column-picker')
+                .prepend('<div><button>X</button></div>')
+                .find('div')
+                .css({ float: 'right' })
+                .end()
+                .find('button')
+                .addClass('btn btn-mini ')
+                .on('click', function(){
+                    _this._toggleColumnPickerDialog();
+                })
+                .end()
+                .append('<h4>Select Columns to Display</h4><hr />');
+
+            var popoverContent = $('<ul></ul>');
+            $.each(this.options.columns, function(index, column) {
+                var columnSelectCb = $('<input />')
+                    .attr({
+                        type: "checkbox",
+                        id: column.id,
+                        class: 'gb-column-picker-cb'
+                    })
+                    .on('click', function(e){
+                        _this.options.columns[index].hidden = !(column.hidden);
+                        var toggleSelector = 'td[data-id="' + column.id + '"], th[data-id="' + column.id + '"]';
+                        $(toggleSelector).toggleClass('hidden');
+                    });
+                if(!column.hidden) {
+                    columnSelectCb.attr('checked', 'checked');
+                }
+
+                var label = (typeof column.title == 'undefined' || column.title == '') ? column.id : column.title;
+                $('<li><label></label></li>')
+                    .addClass('gb-column-picker-li')
+                    .find('label')
+                    .text(label)
+                    .prepend(columnSelectCb)
+                    .end()
+                    .appendTo(popoverContent);
+            });
+
+            popoverContent.appendTo(this.columnPickerDialog);
+            this.columnPickerDialog.appendTo(this.element.parent())
+                .css({ display: 'none' });
+        },
+        _toggleColumnPickerDialog: function() {
+            this.columnPickerDialog.slideToggle();
         },
         _createHeader: function() {
             if (typeof this.options.header != 'undefined') {
@@ -551,6 +628,9 @@
                     style = style + 'min-width:' + column.minWidth + 'px; ';
                 }
 
+                //display a &nbsp; in the title if no title is defined
+                var columnTitle = (typeof column.title != 'undefined') ? column.title : '\u00A0';
+
                 if (column.sortable) {
                     th.append(
                         $('<a/>').attr({
@@ -559,12 +639,12 @@
                             "data-id": column.id,
                             "data-sort": 'asc'
                         }).append(
-                                $('<span/>').attr('class', 'gb-title').text(column.title)
+                                $('<span/>').attr('class', 'gb-title').text(columnTitle)
                             )
                     );
                 } else {
                     th.append(
-                        $('<span/>').attr('class', 'gb-title').text(column.title)
+                        $('<span/>').attr('class', 'gb-title').text(columnTitle)
                     );
                 }
 
