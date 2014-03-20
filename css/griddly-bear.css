@@ -338,3 +338,32 @@
 .gb-button-box .gb-button img {
     vertical-align: middle;
 }
+
+/* styles to support the column picker functionality */
+.gb-column-picker {
+    z-index: 999;
+    background-color: #f5f5f5;
+    padding: 4px 10px 10px 10px;
+    position: absolute;
+    bottom: 36px;
+    border: 1px solid #ccc;
+    opacity: .92;
+}
+
+.gb-column-picker hr {
+    color: #acacac;
+    background-color: #cfcfcf;
+    height: 1px;
+    margin: 4px 0;
+}
+.gb-column-picker ul {
+    margin-left: 12px;
+}
+input[type="checkbox"].gb-column-picker-cb {
+    margin: 0 3px 0 0;
+}
+
+.gb-column-picker-li {
+    list-style-type: none;
+    padding: 2px 0;
+}

@@ -15,6 +15,7 @@ $('#grid').grrr({
 | [rowsPerPageOptions](#rowsperpageoptions) | [5,10,15] | |
 | [alternatingRows](#alternatingrows) | true | |
 | [multiSelect](#multiselect)      | false | Enables the ability to select multiple rows at once |
+| [columnSelector](#columnselector)      | false | Adds a button to the footer which displays a column picker dialog |
 
 ## formatRow
 
@@ -52,3 +53,10 @@ $('#grid').grrr({
 
 When this is enabled, the [getSelectedRow() method](methods.md#getselectedrow) with return an array of all
 selected rows, whereas it returns an object of the selected row when `multiSelect` is false.
+
+##columnselector
+Values: `true`|`false`
+
+When enabled, it adds a button to the first position on the footer. When the button is clicked, it displays a
+popup containing a list of checkboxes with the column title indicating the hidden status. Toggling the checkboxes
+toggles the class `hidden` on the table heading and cells in that column.
