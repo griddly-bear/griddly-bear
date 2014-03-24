@@ -627,8 +627,16 @@
                     style = style + 'min-width:' + column.minWidth + 'px; ';
                 }
 
-                //display a &nbsp; in the title if no title is defined
-                var columnTitle = (typeof column.title != 'undefined') ? column.title : '\u00A0';
+                if (typeof column.title == 'undefined' || (typeof column.title != 'undefined' && column.title.length == 0)) {
+                    column.title = '\u00A0';
+                }
+
+                var title = $('<span/>').attr('class', 'gb-title');
+                if (typeof column.shortTitle != 'undefined') {
+                    title.html(column.shortTitle).attr('title', column.title);
+                } else {
+                    title.html(column.title);
+                }
 
                 if (column.sortable) {
                     th.append(
@@ -637,14 +645,10 @@
                             class: 'gb-column-sort',
                             "data-id": column.id,
                             "data-sort": 'asc'
-                        }).append(
-                                $('<span/>').attr('class', 'gb-title').text(columnTitle)
-                            )
+                        }).append(title)
                     );
                 } else {
-                    th.append(
-                        $('<span/>').attr('class', 'gb-title').text(columnTitle)
-                    );
+                    th.append(title);
                 }
 
                 if (column.filterable) {
@@ -1222,8 +1226,11 @@
             } else {
                 $('input.filter', this.element).hide();
             }
+        },
+        setUrl: function(url)
+        {
+            this.options.url = url;
         }
-
     });
 
 })(jQuery);
