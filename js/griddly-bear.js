@@ -530,8 +530,7 @@
                 pagination.append(ul);
             }
 
-
-            if (self.state.rows > self.options.rowsPerPageOptions[0]) {
+            if (this.state.totalPages > 1) {
                 pagination.append(rowsPerPageOptions);
 
                 var pages = $("<div />")
