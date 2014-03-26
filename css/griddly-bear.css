@@ -367,3 +367,6 @@ input[type="checkbox"].gb-column-picker-cb {
     list-style-type: none;
     padding: 2px 0;
 }
+.gb-placeholder {
+    background-color: #EEEEEE;
+}
