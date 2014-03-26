@@ -10,13 +10,17 @@
             filterOptions: {'placeholder': 'Search...'},
             dataType: null
         },
+        events: {
+            columnsResorted: 'columnResorted',
+            columnVisibilityChanged: 'columnVisibilityChanged'
+        },
         options: {
             columns: [],
             filters: {},
             footer: {pagination: true},
             header: null,
-            onSelect: function(target){},
-            onFilter: function(filters){},
+            onSelect: function(target) {},
+            onFilter: function(filters) {},
             multiSelect: false,
             rowsPerPage: 10,
             rowsPerPageOptions: [5,10,15],
@@ -24,11 +28,12 @@
             url: null,
             alternatingRows: true,
             columnSelector: false,
+            columnReordering: false,
             menuButtonIconClass: "icol-application-view-columns",
             columnPickerIconClass: "icol-application-view-columns",
-            loadComplete: function(rows){},
-            onColumnValueChanged: function(id, value){},
-            formatRow: function(row){return row},
+            loadComplete: function(rows) {},
+            onColumnValueChanged: function(id, value) {},
+            formatRow: function(row) {return row},
             getDataOnInitialLoad: true,
             getInitialDataOnSubsequentEventType: null,
             getInitialDataOnSubsequentEventScope: null
@@ -76,13 +81,13 @@
                 this.state.gridInitialLoad = true;
             }
 
-            var self = this;
+            var _this = this;
 
-            if(self.options.getInitialDataOnSubsequentEventType && self.options.getInitialDataOnSubsequentEventScope) {
-                $(self.options.getInitialDataOnSubsequentEventScope).on(self.options.getInitialDataOnSubsequentEventType, function() {
-                    if(!self.state.gridInitialLoad) {
-                        self._getRows();
-                        self.state.gridInitialLoad = true;
+            if(_this.options.getInitialDataOnSubsequentEventType && _this.options.getInitialDataOnSubsequentEventScope) {
+                $(_this.options.getInitialDataOnSubsequentEventScope).on(_this.options.getInitialDataOnSubsequentEventType, function() {
+                    if(!_this.state.gridInitialLoad) {
+                        _this._getRows();
+                        _this.state.gridInitialLoad = true;
                     }
                 })
             }
@@ -125,12 +130,12 @@
                     icon.attr('src', params.icon.src);
                 }
                 if (typeof params.icon.attributes == 'object') {
-                    $.each(params.icon.attributes, function(index, value){
+                    $.each(params.icon.attributes, function(index, value) {
                         if (index.toLowerCase() == 'class') {
                             if (typeof value == 'string') {
                                 icon.addClass(value);
                             } else {
-                                $.each(value, function(index, className){
+                                $.each(value, function(index, className) {
                                     icon.addClass(className);
                                 });
                             }
@@ -147,12 +152,12 @@
             }
 
             if (typeof params.attributes == 'object') {
-                $.each(params.attributes, function(index, value){
+                $.each(params.attributes, function(index, value) {
                     if (index.toLowerCase() == 'class') {
                         if (typeof value == 'string') {
                             button.addClass(value);
                         } else {
-                            $.each(value, function(index, className){
+                            $.each(value, function(index, className) {
                                 button.addClass(className);
                             });
                         }
@@ -165,20 +170,31 @@
             return button;
         },
         _createEvents: function() {
-            var self = this;
+            var _this = this;
 
             $(window).resize(function() {
-                self.state.width = $(self.element).width();
+                _this.state.width = $(_this.element).width();
 
-                if (self.state.isResizing == false) {
-                    if (Date.now() > (self.state.lastResize + 500)) {
-                        self._onResize();
+                if (_this.state.isResizing == false) {
+                    if (Date.now() > (_this.state.lastResize + 500)) {
+                        _this._onResize();
                     }
                 }
             });
 
+            //update the options.columns when a column is toggled
+            $(this.element).on(this.events.columnVisibilityChanged, function(e, columnIndex) {
+                _this._toggleOptionColumns(columnIndex);
+            })
+
+            //update the ordering of the options.columns when the UI reorders the table
+            $(this.element).on(this.events.columnsResorted, function(e, data) {
+                //Reorder the this.options.columns array to match the re-arranged columns
+                _this._reorderOptionColumns(data);
+            });
+
             $(this.element).on('click', '.gb-button.menuButton', function() {
-                var buttonBox = $(self.element).find(".gb-button-box");
+                var buttonBox = $(_this.element).find(".gb-button-box");
                 var actions = buttonBox.find(".gb-button:not(.menuButton)");
                 if (!buttonBox.hasClass("open")) {
                     actions.removeClass("hidden");
@@ -193,92 +209,92 @@
                 e.preventDefault();
                 var link = $(this).children('a');
                 if (link.hasClass('gb-first')) {
-                    self.firstPage();
+                    _this.firstPage();
                 } else if (link.hasClass('gb-next')) {
-                    self.nextPage();
+                    _this.nextPage();
                 } else if (link.hasClass('gb-previous')) {
-                    self.previousPage();
+                    _this.previousPage();
                 } else if (link.hasClass('gb-last')) {
-                    self.lastPage();
+                    _this.lastPage();
                 } else if (link.hasClass('gb-page')) {
-                    self.goToPage(parseInt(link.attr('data-page')));
+                    _this.goToPage(parseInt(link.attr('data-page')));
                 }
             }).on('change', '.gb-pagination select', function() {
                     var rowsPerPage = $(this).val();
                     $(this).children('.gb-pagination select').val(rowsPerPage);
-                    self.options.rowsPerPage = rowsPerPage;
-                    self.state.page = 1;
-                    self.reloadGrid();
+                    _this.options.rowsPerPage = rowsPerPage;
+                    _this.state.page = 1;
+                    _this.reloadGrid();
                 }).on('click', 'th a.gb-column-sort', function(e) {
                     e.preventDefault();
                     var columnId = $(this).attr('data-id');
-                    var order = columnId in self.options.sort ?
-                        (self.options.sort[columnId].toLowerCase() == 'asc' ? 'desc' : 'asc') : 'asc';
+                    var order = columnId in _this.options.sort ?
+                        (_this.options.sort[columnId].toLowerCase() == 'asc' ? 'desc' : 'asc') : 'asc';
                     var sort = {};
                     sort[columnId] = order;
-                    self.option('sort', sort);
+                    _this.option('sort', sort);
                 }).on('change', 'input.filter', function() {
-                    var filters = self.options.filters;
+                    var filters = _this.options.filters;
                     filters[$(this).attr('data-id')] = $(this).val();
-                    self.option('filters', filters);
+                    _this.option('filters', filters);
                 });
 
             // Touch events
-            var self = this;
-            var tbody = $('table tbody', self.element);
+            var _this = this;
+            var tbody = $('table tbody', _this.element);
             var el = document.createElement('div');
             el.setAttribute('ongesturestart', 'return;');
             if (typeof el.ongesturestart === "function") { // Is a mobile device
                 $(this.element).on('touchstart', 'tbody tr', function(event) {
                     var target = $(this);
-                    clearTimeout(self.downTimer);
-                    self.state.cursor.origin = {
+                    clearTimeout(_this.downTimer);
+                    _this.state.cursor.origin = {
                         x: event.originalEvent.pageX,
                         y: event.originalEvent.pageY
                     };
-                    self.state.cursor.cancelClick = false;
-                    self.downTimer = setTimeout(function() {
-                        self.state.cursor.cancelClick = true;
-                        self._selectRow(target);
-                        self._showRowData(target);
-                    }, self.state.cursor.holdWait);
-                }).on('touchmove', 'tbody tr', function(event){
-                        self.state.cursor.position = {
-                            x: event.originalEvent.pageX,
-                            y: event.originalEvent.pageY
-                        };
-                    }).on('touchend', 'tbody tr', function(){
-                        clearTimeout(self.downTimer);
-                        if (self.state.cursor.cancelClick == false) {
-                            var isClick = false;
-                            if (self.state.cursor.position == null) {
+                    _this.state.cursor.cancelClick = false;
+                    _this.downTimer = setTimeout(function() {
+                        _this.state.cursor.cancelClick = true;
+                        _this._selectRow(target);
+                        _this._showRowData(target);
+                    }, _this.state.cursor.holdWait);
+                }).on('touchmove', 'tbody tr', function(event) {
+                    _this.state.cursor.position = {
+                        x: event.originalEvent.pageX,
+                        y: event.originalEvent.pageY
+                    };
+                }).on('touchend', 'tbody tr', function() {
+                    clearTimeout(_this.downTimer);
+                    if (_this.state.cursor.cancelClick == false) {
+                        var isClick = false;
+                        if (_this.state.cursor.position == null) {
+                            isClick = true;
+                        } else {
+                            var dX = Math.abs(_this.state.cursor.position.x - _this.state.cursor.origin.x);
+                            var dY = Math.abs(_this.state.cursor.position.y - _this.state.cursor.origin.y);
+                            if (dX <= _this.state.cursor.tolerance && dY <= _this.state.cursor.tolerance) {
                                 isClick = true;
-                            } else {
-                                var dX = Math.abs(self.state.cursor.position.x - self.state.cursor.origin.x);
-                                var dY = Math.abs(self.state.cursor.position.y - self.state.cursor.origin.y);
-                                if (dX <= self.state.cursor.tolerance && dY <= self.state.cursor.tolerance) {
-                                    isClick = true;
-                                }
                             }
-                            if (isClick) {
-                                self._selectRow($(this));
-                                self.options.onSelect(self.getSelectedRow());
-                            }
-                            self.state.cursor.origin = null;
-                            self.state.cursor.position = null;
                         }
-                    });
+                        if (isClick) {
+                            _this._selectRow($(this));
+                            _this.options.onSelect(_this.getSelectedRow());
+                        }
+                        _this.state.cursor.origin = null;
+                        _this.state.cursor.position = null;
+                    }
+                });
             } else {
                 $('table', this.element).attr("oncontextmenu","return false;"); // Disable right click context menu;
-                $(this.element).on('dblclick', 'tbody tr', function(){
-                    self._selectRow($(this));
-                    self.options.onSelect(self.getSelectedRow());
+                $(this.element).on('dblclick', 'tbody tr', function() {
+                    _this._selectRow($(this));
+                    _this.options.onSelect(_this.getSelectedRow());
                 }).on('click', 'tbody tr', function() {
-                        self._selectRow($(this));
+                        _this._selectRow($(this));
                     }).on('mouseup', 'tbody tr', function(event) { // Simulated right click handler.
                         if (event.which === 3) {
-                            self._selectRow($(this));
-                            self._showRowData(self.state.selectedRow);
+                            _this._selectRow($(this));
+                            _this._showRowData(_this.state.selectedRow);
                         }
                     });
             }
@@ -317,17 +333,17 @@
                 }
             });
         },
-        _createColumnPickerDialog: function(){
+        _createColumnPickerDialog: function() {
             var _this = this;
             this.columnPickerDialog = $('<div></div>')
                 .addClass('gb-column-picker')
                 .prepend('<div><button>X</button></div>')
                 .find('div')
-                .css({ float: 'right' })
+                .css({ float: 'right', paddingTop: '5px' })
                 .end()
                 .find('button')
-                .addClass('btn btn-mini ')
-                .on('click', function(){
+                .addClass('btn btn-mini btn-danger')
+                .on('click', function() {
                     _this._toggleColumnPickerDialog();
                 })
                 .end()
@@ -341,8 +357,8 @@
                         id: column.id,
                         class: 'gb-column-picker-cb'
                     })
-                    .on('click', function(e){
-                        _this.options.columns[index].hidden = !(column.hidden);
+                    .on('click', function(e) {
+                        _this.element.trigger(_this.events.columnVisibilityChanged, [index]);
                         var toggleSelector = 'td[data-id="' + column.id + '"], th[data-id="' + column.id + '"]';
                         $(toggleSelector).toggleClass('hidden');
                     });
@@ -364,6 +380,9 @@
             this.columnPickerDialog.appendTo(this.element.parent())
                 .css({ display: 'none' });
         },
+        _toggleOptionColumns: function(index) {
+            this.options.columns[index].hidden = !(this.options.columns[index].hidden);
+        },
         _toggleColumnPickerDialog: function() {
             this.columnPickerDialog.slideToggle();
         },
@@ -377,7 +396,7 @@
             }
         },
         _getCap: function(options) {
-            var self = this;
+            var _this = this;
             var cap = $('<div />').addClass('gb-cap');
             var left = $('<div />').addClass('gb-cap-left');
             var mid = $('<div />').addClass('gb-cap-mid');
@@ -385,12 +404,12 @@
             var buttonBox = $("<div />").addClass('gb-button-box');
 
             if (typeof options.buttons != 'undefined') {
-                $.each(options.buttons, function(index, value){
-                    var btn = self._createButton(value);
+                $.each(options.buttons, function(index, value) {
+                    var btn = _this._createButton(value);
                     buttonBox.append(btn);
                 });
 
-                var menuButtonIcon = $("<i />").addClass("gb-button-icon").addClass(self.options.menuButtonIconClass);
+                var menuButtonIcon = $("<i />").addClass("gb-button-icon").addClass(_this.options.menuButtonIconClass);
                 var menuButton = $("<button />").addClass("gb-button").addClass("menuButton").attr("title","Actions");
                 menuButton.append(menuButtonIcon);
                 buttonBox.append(menuButton);
@@ -415,10 +434,10 @@
             return cap;
         },
         _createPagination: function() {
-            var self = this;
+            var _this = this;
 
-            $('.gb-pagination', self.element).empty();
-            $('.gb-pages', self.element).empty();
+            $('.gb-pagination', _this.element).empty();
+            $('.gb-pages', _this.element).empty();
 
             var pagination = $('<div/>').attr('class', 'gb-pagination');
             var ul = $('<ul />');
@@ -429,7 +448,7 @@
                 var rowOption = $('<option />')
                     .attr('value', value)
                     .text(value);
-                if (value == self.options.rowsPerPage) {
+                if (value == _this.options.rowsPerPage) {
                     rowOption.attr('selected', true);
                 }
                 rowsPerPageOptions.append(rowOption);
@@ -437,7 +456,7 @@
 
             pagination.append(rowsPerPageOptions);
 
-            if (self.state.totalPages > 1) {
+            if (_this.state.totalPages > 1) {
                 var tag = 'gb-first';
 
                 if (this.state.page == 1) {
@@ -469,8 +488,8 @@
                 el.append(a);
                 ul.append(el);
 
-                var start = Math.max(1, self.state.page - 2);
-                var end = Math.min(this.state.totalPages, (self.state.page + (4-(self.state.page - start))));
+                var start = Math.max(1, _this.state.page - 2);
+                var end = Math.min(this.state.totalPages, (_this.state.page + (4-(_this.state.page - start))));
                 var pages = end - start;
 
                 if (pages < this.state.totalPages) {
@@ -480,7 +499,7 @@
                 for (var i = start; i <= end; i++) {
                     el = $('<li />');
 
-                    if (i == self.state.page) {
+                    if (i == _this.state.page) {
                         el.attr('class', 'gb-current').text(i).addClass("page-link");
                     } else {
                         var a = $('<a/>').attr({
@@ -564,33 +583,33 @@
 
             $(this).children('.gb-cap-right').append(pagination);
 
-            var buttonBox = $(self.element).find(".gb-button-box");
+            var buttonBox = $(_this.element).find(".gb-button-box");
             var actions = buttonBox.find(".gb-button:not(.menuButton)");
             var menuButton = buttonBox.find(".gb-button.menuButton");
-            var pagination = $(self.element).find(".gb-pagination > ul");
+            var pagination = $(_this.element).find(".gb-pagination > ul");
 
-            if (self.staticState.mobile) {
-                $(self.element).find(".gb-cap-mid").addClass("mobile");
-                $(self.element).find(".gb-pagination").addClass("mobile");
+            if (_this.staticState.mobile) {
+                $(_this.element).find(".gb-cap-mid").addClass("mobile");
+                $(_this.element).find(".gb-pagination").addClass("mobile");
 
                 buttonBox.addClass("mobile");
                 actions.addClass("hidden").addClass("mobile");
                 menuButton.show();
 
                 pagination.find(".page-link").hide();
-                $(self.element).find(".gb-rows-per-page").hide();
+                $(_this.element).find(".gb-rows-per-page").hide();
             } else {
-                $(self.element).find(".gb-cap-mid").removeClass("mobile");
-                $(self.element).find(".gb-pagination").removeClass("mobile");
+                $(_this.element).find(".gb-cap-mid").removeClass("mobile");
+                $(_this.element).find(".gb-pagination").removeClass("mobile");
                 buttonBox.removeClass("mobile");
                 actions.removeClass("hidden").removeClass("mobile");
                 menuButton.hide();
                 pagination.find(".page-link").show();
-                $(self.element).find(".gb-rows-per-page").show();
+                $(_this.element).find(".gb-rows-per-page").show();
             }
         },
         _createTable: function() {
-            var self = this;
+            var _this = this;
 
             var table = $('<table />');
             var thead = $('<thead />');
@@ -607,7 +626,7 @@
             }
 
             $.each(this.options.columns, function(index, column) {
-                column = $.extend({}, self.columnDefaults, column);
+                column = $.extend({}, _this.columnDefaults, column);
                 var th = $('<th />').attr('data-id', column.id);
 
                 if (column.required) {
@@ -627,8 +646,16 @@
                     style = style + 'min-width:' + column.minWidth + 'px; ';
                 }
 
-                //display a &nbsp; in the title if no title is defined
-                var columnTitle = (typeof column.title != 'undefined') ? column.title : '\u00A0';
+                if (typeof column.title == 'undefined' || (typeof column.title != 'undefined' && column.title.length == 0)) {
+                    column.title = '\u00A0';
+                }
+
+                var title = $('<span/>').attr('class', 'gb-title');
+                if (typeof column.shortTitle != 'undefined') {
+                    title.html(column.shortTitle).attr('title', column.title);
+                } else {
+                    title.html(column.title);
+                }
 
                 if (column.sortable) {
                     th.append(
@@ -637,14 +664,10 @@
                             class: 'gb-column-sort',
                             "data-id": column.id,
                             "data-sort": 'asc'
-                        }).append(
-                                $('<span/>').attr('class', 'gb-title').text(columnTitle)
-                            )
+                        }).append(title)
                     );
                 } else {
-                    th.append(
-                        $('<span/>').attr('class', 'gb-title').text(columnTitle)
-                    );
+                    th.append(title);
                 }
 
                 if (column.filterable) {
@@ -654,7 +677,7 @@
                         'data-id': column.id,
                         'placeholder': column.filterOptions.placeholder})
                         .addClass('filter');
-                    if (self.state.filtersOn == false) {
+                    if (_this.state.filtersOn == false) {
                         filter.hide();
                     }
                     th.append(filter);
@@ -673,30 +696,90 @@
             table.append(tbody);
             table.addClass('gb-data-table');
             this.element.append(table);
+
+            if (this.options.columnReordering) {
+                this._setReorderableColumns();
+            }
+        },
+        _setReorderableColumns: function() {
+            var startIndex = 0;
+            var endIndex = 0;
+            var _this = this;
+            this.element.find("table.gb-data-table>thead>tr.gb-data-table-header-row")
+                .sortable({
+                    axis: "x",
+                    tolerance: "pointer",
+                    forceHelperSize: true,
+                    items: '> th',
+                    cursor: 'pointer',
+                    placeholder: 'gb-placeholder',
+                    start: function(e, ui) {
+                        startIndex = ui.item.index();
+                    },
+                    beforeStop: function(e, ui) {
+                        var endIndex = ui.item.index();
+                        if(endIndex != startIndex) {
+                            $.each($('tr.gb-data-row'), function() {
+                                var cols = $(this).children('th, td');
+                                if(endIndex > startIndex) {
+                                    //slide to the right
+                                    cols
+                                        .eq(startIndex)
+                                        .detach()
+                                        .insertAfter(cols.eq(endIndex));
+                                } else {
+                                    //slide to the left
+                                    cols
+                                        .eq(startIndex)
+                                        .detach()
+                                        .insertBefore(cols.eq(endIndex));
+                                }
+                            });
+                        }
+                    },
+                    update: function(e, ui) {
+                        var idArray = [];
+                        $('table.gb-data-table>thead>tr.gb-data-table-header-row>th').each(function(index, item) {
+                            idArray.push($(item).data('id'))
+                        });
+                        _this.element.trigger(_this.events.columnsResorted, [idArray]);
+                    }
+                });
+        },
+        _reorderOptionColumns: function(orderArray) {
+            var newColumns = [];
+            var _this = this;
+            $.each(orderArray, function(index, columnId) {
+                var tmpColArr = $.grep(_this.options.columns, function(column, index) {
+                    return column.id == columnId
+                });
+                newColumns[index] = tmpColArr[0];
+            });
+            this.options.columns = newColumns;
         },
         _drawRows: function(data) {
-            var self = this;
+            var _this = this;
             var columns = [];
             var tableBody = $('tbody', this.element);
 
-            $('thead th', self.element).each(function() {
+            $('thead th', _this.element).each(function() {
                 if ($(this).attr('data-selector')) {
                     return;
                 }
                 columns.push($(this).attr('data-id'));
             });
 
-            $.each(data.rows, function(rowIndex, row){
-                row = self.options.formatRow(row);
+            $.each(data.rows, function(rowIndex, row) {
+                row = _this.options.formatRow(row);
                 var tr = $('<tr />');
                 tr.addClass('gb-data-row')
-                if (self.options.alternatingRows && !(rowIndex % 2)) {
+                if (_this.options.alternatingRows && !(rowIndex % 2)) {
                     tr.addClass('alt');
                 }
                 tableBody.append(tr);
-                var lastRow = $('tbody tr.gb-data-row', self.element).last();
+                var lastRow = $('tbody tr.gb-data-row', _this.element).last();
 
-                if (self.options.multiSelect) {
+                if (_this.options.multiSelect) {
                     var td = $('<td />').attr('class', 'gb-data-cell');
                     var checkbox = $('<input/>').attr({type: 'checkbox', id: rowIndex});
                     td.append(checkbox);
@@ -706,11 +789,11 @@
                 $.each(columns, function(index, column) {
                     var td = $('<td />');
                     var label = $('<span />');
-                    label.addClass('gb-vertical-label').html(self.options.columns[index].title + ": ");
+                    label.addClass('gb-vertical-label').html(_this.options.columns[index].title + ": ");
                     td
                         .addClass('gb-data-cell')
                         .attr('data-id', column);
-                    switch(self.options.columns[index].dataType) {
+                    switch(_this.options.columns[index].dataType) {
                         case 'boolean':
                             var primaryKey = null;
                             var checkbox = $('<div />').addClass('gb-checkbox');
@@ -721,7 +804,7 @@
                             }
 
                             $.each(columns, function(index, column) {
-                                if (self.options.columns[index].primary == true) {
+                                if (_this.options.columns[index].primary == true) {
                                     primaryKey = row[column];
                                 }
                             });
@@ -736,7 +819,7 @@
                             }
 
                             input.on('change', function() {
-                                self.options.onColumnValueChanged(
+                                _this.options.onColumnValueChanged(
                                     primaryKey != null ? primaryKey : rowIndex,
                                     input.prop('checked')
                                 );
@@ -751,21 +834,21 @@
                             td
                                 .append(label)
                                 .append(
-                                    self._formatColumnData(
+                                    _this._formatColumnData(
                                         row[column],
                                         row,
-                                        self.options.columns[index].format
+                                        _this.options.columns[index].format
                                     )
                                 );
                     }
-                    for (var i in self.options.columns) {
-                        if (self.options.columns[i].id == column &&
-                            self.options.columns[i].primary != undefined &&
-                            self.options.columns[i].primary) {
+                    for (var i in _this.options.columns) {
+                        if (_this.options.columns[i].id == column &&
+                            _this.options.columns[i].primary != undefined &&
+                            _this.options.columns[i].primary) {
                             td.attr('data-primary', 'true');
                         }
-                        if (self.options.columns[i].id == column &&
-                            self.options.columns[i].hidden) {
+                        if (_this.options.columns[i].id == column &&
+                            _this.options.columns[i].hidden) {
                             td.addClass('hidden');
                         }
                     }
@@ -776,7 +859,7 @@
             this.options.loadComplete(data.rows);
         },
         _getRows: function() {
-            var self = this;
+            var _this = this;
             var params = {
                 columns: [],
                 filters: {},
@@ -814,45 +897,45 @@
                     throw "grrr, total is not an integer";
                 }
 
-                self.state.rows = data.total;
-                self.state.totalPages = Math.ceil(self.state.rows / self.options.rowsPerPage);
-                self.tableData = data;
-                self._drawRows(data);
-                self._onResize();
-                $('table', self.element).css('height', '');
-                $('.gb-filler', self.element).remove();
+                _this.state.rows = data.total;
+                _this.state.totalPages = Math.ceil(_this.state.rows / _this.options.rowsPerPage);
+                _this.tableData = data;
+                _this._drawRows(data);
+                _this._onResize();
+                $('table', _this.element).css('height', '');
+                $('.gb-filler', _this.element).remove();
                 if (Object.keys(params['filters']).length > 0) {
-                    self.options.onFilter(params['filters']);
+                    _this.options.onFilter(params['filters']);
                 }
             });
         },
         _selectRow: function(target) {
-            var self = this;
-            self._hideRowData();
-            self.state.selectedRow = target;
-            $('table tbody tr', self.element).removeClass('gb-row-selected');
-            self.state.selectedRow.addClass('gb-row-selected');
+            var _this = this;
+            _this._hideRowData();
+            _this.state.selectedRow = target;
+            $('table tbody tr', _this.element).removeClass('gb-row-selected');
+            _this.state.selectedRow.addClass('gb-row-selected');
         },
         _onResize: function() {
-            var self = this;
-            var viewPortWidth = self.element.width();
-            self.state.isResizing = true;  // Prevent multi-resize events on race conditions.
+            var _this = this;
+            var viewPortWidth = _this.element.width();
+            _this.state.isResizing = true;  // Prevent multi-resize events on race conditions.
             var table = $('table', this.element);
             var isVerticalLayout = false;
-            var layoutChangeWidth = self._getLayoutChangeWidth();
+            var layoutChangeWidth = _this._getLayoutChangeWidth();
             var minWidthTotal = false;
-            self._hideRowData();
-            if (self.element.hasClass('gb-layout-vertical')) {
+            _this._hideRowData();
+            if (_this.element.hasClass('gb-layout-vertical')) {
                 minWidthTotal = layoutChangeWidth;
             } else {
-                minWidthTotal = self._getMinWidthTotal();
+                minWidthTotal = _this._getMinWidthTotal();
             }
             if (viewPortWidth < table.width()) { // View is shrinking.
                 while (viewPortWidth < table.width()) {
                     var foundRemovable = false;
                     $.each(this.options.columns.reverse(), function(index, column) {
-                        var columnHeader = $('table thead th[data-id="' + column.id + '"]', self.element);
-                        var columnRows = $('table tbody tr td[data-id="' + column.id + '"]', self.element);
+                        var columnHeader = $('table thead th[data-id="' + column.id + '"]', _this.element);
+                        var columnRows = $('table tbody tr td[data-id="' + column.id + '"]', _this.element);
                         if (columnHeader.hasClass("gb-hidden") == false) {
                             if (typeof columnHeader.attr("data-required") == 'undefined') {
                                 foundRemovable = true;
@@ -874,8 +957,8 @@
             } else if (table.width() >= minWidthTotal) { // View is growing.
                 var spaceToFill = table.width() - minWidthTotal;
                 $.each(this.options.columns, function(index, column) {
-                    var columnHeader = $('table thead th[data-id="' + column.id + '"]', self.element);
-                    var columnRows = $('table tbody tr td[data-id="' + column.id + '"]', self.element);
+                    var columnHeader = $('table thead th[data-id="' + column.id + '"]', _this.element);
+                    var columnRows = $('table tbody tr td[data-id="' + column.id + '"]', _this.element);
                     if (columnHeader.hasClass("gb-hidden") && column.minWidth < spaceToFill) {
                         columnHeader.removeClass("gb-hidden");
                         columnRows.removeClass("gb-hidden");
@@ -890,8 +973,8 @@
 
             if (isVerticalLayout == true) {
                 $.each(this.options.columns, function(index, column) {
-                    var columnHeader = $('table thead th[data-id="' + column.id + '"]', self.element);
-                    var columnRows = $('table tbody tr td[data-id="' + column.id + '"]', self.element);
+                    var columnHeader = $('table thead th[data-id="' + column.id + '"]', _this.element);
+                    var columnRows = $('table tbody tr td[data-id="' + column.id + '"]', _this.element);
                     if (typeof columnHeader.attr("data-required") == 'undefined') {
                         columnHeader.addClass("gb-hidden");
                         columnRows.addClass("gb-hidden");
@@ -901,55 +984,55 @@
                     }
                 });
             }
-            self.element.toggleClass('gb-layout-vertical', isVerticalLayout);
+            _this.element.toggleClass('gb-layout-vertical', isVerticalLayout);
 
-            var footerWidth = $(self.element).find(".gb-footer").width();
+            var footerWidth = $(_this.element).find(".gb-footer").width();
             var totalWidth = 0;
 
-            $(self.element).find(".gb-footer").children("div:not(.gb-clear-both)").each(function() {
+            $(_this.element).find(".gb-footer").children("div:not(.gb-clear-both)").each(function() {
                 totalWidth += $(this).width();
             });
 
             totalWidth = totalWidth * 1.15;
 
-            if (totalWidth > self.staticState.collapseSize) {
-                self.staticState.collapseSize = totalWidth;
+            if (totalWidth > _this.staticState.collapseSize) {
+                _this.staticState.collapseSize = totalWidth;
             }
 
             if (footerWidth < totalWidth) {
-                self.staticState.mobile = true;
-            } else if (self.staticState.mobile && footerWidth > self.staticState.collapseSize) {
-                self.staticState.mobile = false;
+                _this.staticState.mobile = true;
+            } else if (_this.staticState.mobile && footerWidth > _this.staticState.collapseSize) {
+                _this.staticState.mobile = false;
             }
 
             setTimeout(function() {
-                self._createPagination();
+                _this._createPagination();
             }, 500);
 
-            self.state.isResizing = false;
-            self.state.lastResize = Date.now();
+            _this.state.isResizing = false;
+            _this.state.lastResize = Date.now();
         },
         _getLayoutChangeWidth: function()
         {
-            var self = this;
+            var _this = this;
             var minWidthTotal = 0;
             $.each(this.options.columns, function(index, column) {
-                var columnDom = $('th[data-id="' + column.id + '"]', self.element);
+                var columnDom = $('th[data-id="' + column.id + '"]', _this.element);
                 if (typeof columnDom.attr("data-required") != 'undefined') {
-                    minWidthTotal += column.minWidth + self._getExtraWidth(columnDom);
+                    minWidthTotal += column.minWidth + _this._getExtraWidth(columnDom);
                 }
             });
             return minWidthTotal;
         },
         _getMinWidthTotal: function()
         {
-            var self = this;
+            var _this = this;
             var minWidthTotal = 0;
             $.each(this.options.columns, function(index, column) {
-                var columnDom = $('th[data-id="' + column.id + '"]', self.element);
+                var columnDom = $('th[data-id="' + column.id + '"]', _this.element);
                 if (columnDom.hasClass("gb-hidden") == false) {
                     minWidthTotal += (typeof column.minWidth != 'undefined') ? column.minWidth : 100 +
-                        self._getExtraWidth(columnDom);
+                        _this._getExtraWidth(columnDom);
                 }
             });
             return minWidthTotal;
@@ -967,13 +1050,13 @@
         },
         _showRowData: function(target)
         {
-            var self = this;
+            var _this = this;
             if (target.hasClass('gb-additional-data') == false) {
-                self._hideRowData();
+                _this._hideRowData();
                 if (target.hasClass('gb-data-expand') == false) {
                     var hasHidden = false;
                     $.each(this.options.columns, function(index, column) {
-                        var columnHeader = $('table thead th[data-id="' + column.id + '"]', self.element);
+                        var columnHeader = $('table thead th[data-id="' + column.id + '"]', _this.element);
                         if (columnHeader.hasClass('gb-hidden')) {
                             hasHidden = true;
                             return false;
@@ -1045,11 +1128,11 @@
         },
         // public methods
         getRowData: function(id) {
-            var self = this;
-            if (typeof self.tableData.rows == 'object') {
+            var _this = this;
+            if (typeof _this.tableData.rows == 'object') {
                 var type = typeof id;
                 if (type == 'undefined') {
-                    return self.tableData.rows;
+                    return _this.tableData.rows;
                 } else if (type == 'object') {
                     // Composite Key
                     if (id != null) {
@@ -1057,7 +1140,7 @@
                         var keysPassed = 0;
                         var keysNeeded = 0;
                         $.each(id, function(keyField) {
-                            $.each(self.options.columns, function(index, column) {
+                            $.each(_this.options.columns, function(index, column) {
                                 if (column.primary == true) {
                                     keysNeeded ++;
                                 }
@@ -1070,7 +1153,7 @@
                             return null;
                         }
                         var foundRow = null;
-                        $.each(self.tableData.rows, function(index, row) {
+                        $.each(_this.tableData.rows, function(index, row) {
                             var passed = true;
                             $.each(id, function(keyField, value) {
                                 if (row[keyField] != value) {
@@ -1086,13 +1169,13 @@
                             return foundRow;
                         }
                     } else {
-                        return self.tableData.rows;
+                        return _this.tableData.rows;
                     }
                 } else if (type == 'string' || type == 'number') {
                     // Single Key
                     var primaryKeyId = null;
                     var keysNeeded = 0;
-                    $.each(self.options.columns, function(index, column) {
+                    $.each(_this.options.columns, function(index, column) {
                         if(column.primary == true) {
                             keysNeeded ++;
                             primaryKeyId = column.id;
@@ -1103,7 +1186,7 @@
                     }
                     if (primaryKeyId != null) {
                         var foundRow = null;
-                        $.each(self.tableData.rows, function(index, row) {
+                        $.each(_this.tableData.rows, function(index, row) {
                             if(row[primaryKeyId] == id) {
                                 foundRow = row;
                                 return false;
@@ -1118,12 +1201,12 @@
             return null;
         },
         getSelectedRow: function() {
-            var self = this;
+            var _this = this;
 
-            if (self.state.selectedRow != null) {
-                var index = $('table tbody tr', this.element).index(self.state.selectedRow);
+            if (_this.state.selectedRow != null) {
+                var index = $('table tbody tr', this.element).index(_this.state.selectedRow);
                 if (typeof index == 'number') {
-                    var selectedRow = self.tableData.rows[index];
+                    var selectedRow = _this.tableData.rows[index];
                     if (typeof selectedRow != 'undefined') {
                         return selectedRow;
                     }
@@ -1133,15 +1216,15 @@
             return null;
         },
         getSelectedRows: function() {
-            var self = this;
+            var _this = this;
 
-            if (self.options.multiSelect) {
+            if (_this.options.multiSelect) {
                 var rows = [];
                 $.each(
                     $('table tbody tr input[type="checkbox"]:checked', this.element),
                     function (index, box) {
                         var id = $(box).attr('id');
-                        var data = self.tableData.rows[id];
+                        var data = _this.tableData.rows[id];
 
                         rows.push(data);
                     }
@@ -1199,7 +1282,7 @@
         addFilters: function(filterArray)
         {
             var filters = this.options.filters;
-            $.each(filterArray, function(i, column){
+            $.each(filterArray, function(i, column) {
                 if (column.type != "==") {
                     filters[column.column] = {type: column.type, value: column.value };
                 } else {
@@ -1222,8 +1305,11 @@
             } else {
                 $('input.filter', this.element).hide();
             }
+        },
+        setUrl: function(url)
+        {
+            this.options.url = url;
         }
-
     });
 
 })(jQuery);
