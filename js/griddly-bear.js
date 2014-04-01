@@ -259,31 +259,31 @@
                         _this._showRowData(target);
                     }, _this.state.cursor.holdWait);
                 }).on('touchmove', 'tbody tr', function(event) {
-                    _this.state.cursor.position = {
-                        x: event.originalEvent.pageX,
-                        y: event.originalEvent.pageY
-                    };
-                }).on('touchend', 'tbody tr', function() {
-                    clearTimeout(_this.downTimer);
-                    if (_this.state.cursor.cancelClick == false) {
-                        var isClick = false;
-                        if (_this.state.cursor.position == null) {
-                            isClick = true;
-                        } else {
-                            var dX = Math.abs(_this.state.cursor.position.x - _this.state.cursor.origin.x);
-                            var dY = Math.abs(_this.state.cursor.position.y - _this.state.cursor.origin.y);
-                            if (dX <= _this.state.cursor.tolerance && dY <= _this.state.cursor.tolerance) {
+                        _this.state.cursor.position = {
+                            x: event.originalEvent.pageX,
+                            y: event.originalEvent.pageY
+                        };
+                    }).on('touchend', 'tbody tr', function() {
+                        clearTimeout(_this.downTimer);
+                        if (_this.state.cursor.cancelClick == false) {
+                            var isClick = false;
+                            if (_this.state.cursor.position == null) {
                                 isClick = true;
+                            } else {
+                                var dX = Math.abs(_this.state.cursor.position.x - _this.state.cursor.origin.x);
+                                var dY = Math.abs(_this.state.cursor.position.y - _this.state.cursor.origin.y);
+                                if (dX <= _this.state.cursor.tolerance && dY <= _this.state.cursor.tolerance) {
+                                    isClick = true;
+                                }
                             }
+                            if (isClick) {
+                                _this._selectRow($(this));
+                                _this.options.onSelect(_this.getSelectedRow());
+                            }
+                            _this.state.cursor.origin = null;
+                            _this.state.cursor.position = null;
                         }
-                        if (isClick) {
-                            _this._selectRow($(this));
-                            _this.options.onSelect(_this.getSelectedRow());
-                        }
-                        _this.state.cursor.origin = null;
-                        _this.state.cursor.position = null;
-                    }
-                });
+                    });
             } else {
                 $('table', this.element).attr("oncontextmenu","return false;"); // Disable right click context menu;
                 $(this.element).on('dblclick', 'tbody tr', function() {
@@ -702,8 +702,6 @@
             }
         },
         _setReorderableColumns: function() {
-            var startIndex = 0;
-            var endIndex = 0;
             var _this = this;
             this.element.find("table.gb-data-table>thead>tr.gb-data-table-header-row")
                 .sortable({
@@ -713,38 +711,24 @@
                     items: '> th',
                     cursor: 'pointer',
                     placeholder: 'gb-placeholder',
-                    start: function(e, ui) {
-                        startIndex = ui.item.index();
-                    },
-                    beforeStop: function(e, ui) {
-                        var endIndex = ui.item.index();
-                        if(endIndex != startIndex) {
-                            $.each($('tr.gb-data-row'), function() {
-                                var cols = $(this).children('th, td');
-                                if(endIndex > startIndex) {
-                                    //slide to the right
-                                    cols
-                                        .eq(startIndex)
-                                        .detach()
-                                        .insertAfter(cols.eq(endIndex));
-                                } else {
-                                    //slide to the left
-                                    cols
-                                        .eq(startIndex)
-                                        .detach()
-                                        .insertBefore(cols.eq(endIndex));
-                                }
-                            });
-                        }
-                    },
                     update: function(e, ui) {
                         var idArray = [];
                         $('table.gb-data-table>thead>tr.gb-data-table-header-row>th').each(function(index, item) {
                             idArray.push($(item).data('id'))
                         });
+                        _this._reorderTableColumns(idArray);
                         _this.element.trigger(_this.events.columnsResorted, [idArray]);
                     }
                 });
+        },
+        _reorderTableColumns: function(orderArray) {
+            $.each(orderArray, function(index, columnId){
+                $.each($('tr.gb-data-row'), function(i, row){
+                    var cellSelector = 'th[data-id="' + columnId + '"], td[data-id="' + columnId + '"]';
+                    var cell = $(this).children(cellSelector);
+                    cell.detach().appendTo($(this));
+                });
+            });
         },
         _reorderOptionColumns: function(orderArray) {
             var newColumns = [];
