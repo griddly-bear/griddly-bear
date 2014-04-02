@@ -680,6 +680,9 @@
                     if (_this.state.filtersOn == false) {
                         filter.hide();
                     }
+                    if (typeof _this.options.filters[column.id] != 'undefined') {
+                        filter.val(_this.options.filters[column.id]);
+                    }
                     th.append(filter);
                 }
 
@@ -695,7 +698,7 @@
             table.append(thead);
             table.append(tbody);
             table.addClass('gb-data-table');
-            this.element.append(table);
+            this.element.empty().append(table);
 
             if (this.options.columnReordering) {
                 this._setReorderableColumns();
@@ -1293,6 +1296,11 @@
         setUrl: function(url)
         {
             this.options.url = url;
+        },
+        destroy: function()
+        {
+            this.element.empty();
+            $.Widget.prototype.destroy.call(this);
         }
     });
 
