@@ -1281,7 +1281,7 @@
         },
         clearFilters: function()
         {
-            this.option('filters', []);
+            this.option('filters', {});
         },
         toggleFilters: function()
         {
