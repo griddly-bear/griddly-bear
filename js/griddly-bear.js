@@ -705,8 +705,9 @@
             }
         },
         _setReorderableColumns: function() {
-            var _this = this;
-            this.element.find("table.gb-data-table>thead>tr.gb-data-table-header-row")
+            var _this = this,
+                selector = "table.gb-data-table>thead>tr.gb-data-table-header-row"
+            this.element.find(selector)
                 .sortable({
                     axis: "x",
                     tolerance: "pointer",
@@ -716,7 +717,7 @@
                     placeholder: 'gb-placeholder',
                     update: function(e, ui) {
                         var idArray = [];
-                        $('table.gb-data-table>thead>tr.gb-data-table-header-row>th').each(function(index, item) {
+                        _this.element.find(selector + '>th').each(function(index, item) {
                             idArray.push($(item).data('id'))
                         });
                         _this._reorderTableColumns(idArray);
