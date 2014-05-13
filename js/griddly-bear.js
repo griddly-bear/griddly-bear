@@ -697,12 +697,34 @@
             thead.append(headTr);
             table.append(thead);
             table.append(tbody);
+
             table.addClass('gb-data-table');
             this.element.empty().append(table);
+
+            this._applyHeaderSortStyling(this.options.sort);
 
             if (this.options.columnReordering) {
                 this._setReorderableColumns();
             }
+        },
+        _applyHeaderSortStyling: function(sort) {
+            var _this = this;
+
+            $.each(this.options.columns, function(index, column) {
+                column = $.extend({}, _this.columnDefaults, column);
+                if (column.sortable) {
+                    if (sort[column.id] == 'ASC') {
+                        $('th[data-id="' + column.id + '"').addClass('sorting_asc');
+                        $('th[data-id="' + column.id + '"').removeClass('sorting_desc');
+                    } else if (sort[column.id] == 'DESC') {
+                        $('th[data-id="' + column.id + '"').addClass('sorting_desc');
+                        $('th[data-id="' + column.id + '"').removeClass('sorting_asc');
+                    } else {
+                        $('th[data-id="' + column.id + '"').removeClass('sorting_desc');
+                        $('th[data-id="' + column.id + '"').removeClass('sorting_asc');
+                    }
+                }
+            });
         },
         _setReorderableColumns: function() {
             var _this = this,
@@ -745,7 +767,7 @@
             });
             this.options.columns = newColumns;
         },
-        _drawRows: function(data) {
+        _drawRows: function(data, sort) {
             var _this = this;
             var columns = [];
             var tableBody = $('tbody', this.element);
@@ -781,6 +803,15 @@
                     td
                         .addClass('gb-data-cell')
                         .attr('data-id', column);
+
+                    if (_this.options.columns[index].sortable !== false) {
+                        if (sort[column]) {
+                            td.addClass('sorting');
+                        } else {
+                            td.removeClass('sorting');
+                        }
+                    }
+
                     switch(_this.options.columns[index].dataType) {
                         case 'boolean':
                             var primaryKey = null;
@@ -888,7 +919,8 @@
                 _this.state.rows = data.total;
                 _this.state.totalPages = Math.ceil(_this.state.rows / _this.options.rowsPerPage);
                 _this.tableData = data;
-                _this._drawRows(data);
+                _this._drawRows(data, params['sort']);
+                _this._applyHeaderSortStyling(params['sort']);
                 _this._onResize();
                 $('table', _this.element).css('height', '');
                 $('.gb-filler', _this.element).remove();
