@@ -144,6 +144,30 @@
     cursor: pointer;
 }
 
+.gb-data-table .gb-data-row .gb-data-cell.sorting {
+    background: rgba(223, 223, 223, .5);
+}
+
+.gb-data-table tr th:not(:last-child).sorting_asc,
+.gb-data-table tr th:not(:last-child).sorting_desc,
+.gb-data-table tr td:not(:last-child).sorting {
+    border-right: 1px solid #ccc;
+}
+
+.gb-data-table tr th:not(:first-child).sorting_asc,
+.gb-data-table tr th:not(:first-child).sorting_desc,
+.gb-data-table tr td:not(:first-child).sorting {
+    border-left: 1px solid #ccc;
+}
+
+.gb-data-table tr th:not(:last-child).sorting_asc {
+    background: url('images/sort_asc.png') no-repeat center right;
+}
+
+.gb-data-table tr th:not(:last-child).sorting_desc {
+    background: url('images/sort_desc.png') no-repeat center right;
+}
+
 .gb-data-table table {
     /* Prevent data highlighting for double click */
     -webkit-touch-callout: none;
