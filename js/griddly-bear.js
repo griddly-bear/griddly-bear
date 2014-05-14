@@ -714,14 +714,14 @@
                 column = $.extend({}, _this.columnDefaults, column);
                 if (column.sortable) {
                     if (sort[column.id] == 'ASC') {
-                        $('th[data-id="' + column.id + '"').addClass('sorting_asc');
-                        $('th[data-id="' + column.id + '"').removeClass('sorting_desc');
+                        $('th[data-id="' + column.id + '"]').addClass('sorting_asc');
+                        $('th[data-id="' + column.id + '"]').removeClass('sorting_desc');
                     } else if (sort[column.id] == 'DESC') {
-                        $('th[data-id="' + column.id + '"').addClass('sorting_desc');
-                        $('th[data-id="' + column.id + '"').removeClass('sorting_asc');
+                        $('th[data-id="' + column.id + '"]').addClass('sorting_desc');
+                        $('th[data-id="' + column.id + '"]').removeClass('sorting_asc');
                     } else {
-                        $('th[data-id="' + column.id + '"').removeClass('sorting_desc');
-                        $('th[data-id="' + column.id + '"').removeClass('sorting_asc');
+                        $('th[data-id="' + column.id + '"]').removeClass('sorting_desc');
+                        $('th[data-id="' + column.id + '"]').removeClass('sorting_asc');
                     }
                 }
             });
