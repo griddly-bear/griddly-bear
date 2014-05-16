@@ -40,6 +40,7 @@
         },
         staticState: {
             mobile: false,
+            touch: false,
             collapseSize: -1
         },
 
@@ -57,10 +58,9 @@
                 selectedRow: null,
                 gridInitialLoad: false,
                 cursor: {
-                    origin: null,
                     position: null,
-                    tolerance: 10, // px
-                    holdWait: 2000 // ms
+                    tolerance: 40, // px
+                    clickDelay: 500, //ms
                 }
             };
             // minWidth value required for responsiveness
@@ -242,47 +242,54 @@
             // Touch events
             var _this = this;
             var tbody = $('table tbody', _this.element);
-            var el = document.createElement('div');
-            el.setAttribute('ongesturestart', 'return;');
-            if (typeof el.ongesturestart === "function") { // Is a mobile device
-                $(this.element).on('touchstart', 'tbody tr', function(event) {
-                    var target = $(this);
-                    clearTimeout(_this.downTimer);
-                    _this.state.cursor.origin = {
-                        x: event.originalEvent.pageX,
-                        y: event.originalEvent.pageY
+
+            //Place expressions here that evaluate to a boolean value where "true" means it's a touchscreen
+            var touchConditionalsArray = [
+                ('ontouchstart' in window),
+                (navigator.MaxTouchPoints > 0),
+                (navigator.msMaxTouchPoints > 0)
+            ];
+
+            //Find if any of the conditions indicating a touchscreen are true
+            this.staticState.touch = (touchConditionalsArray.indexOf(true) >= 0);
+            if (this.staticState.touch) {
+                var taps,
+                    x,
+                    y,
+                    reset = function () {
+                        taps = 0;
+                        x = NaN;
+                        y = NaN;
                     };
-                    _this.state.cursor.cancelClick = false;
-                    _this.downTimer = setTimeout(function() {
-                        _this.state.cursor.cancelClick = true;
-                        _this._selectRow(target);
-                        _this._showRowData(target);
-                    }, _this.state.cursor.holdWait);
-                }).on('touchmove', 'tbody tr', function(event) {
+                reset();
+
+                $(this.element).on('touchstart', function (e) {
+                    var touch = e.originalEvent.changedTouches[0] || {},
+                        oldX = x,
+                        oldY = y;
+                    taps++;
+
+                    x = +touch.pageX || +touch.clientX || +touch.screenX;
+                    y = +touch.pageY || +touch.clientY || +touch.screenY;
+
+                    if (Math.abs(oldX - x) < _this.state.cursor.tolerance &&
+                        Math.abs(oldY - y) < _this.state.cursor.tolerance) {
+                        e.preventDefault();
+                        $(e.target).closest('tr').trigger('dblClick');
+                    }
+
+                    _this._selectRow($(e.target).closest('tr'));
+                    setTimeout(reset, _this.state.cursor.clickDelay);
+                })
+                    .on('touchmove', function(e){
                         _this.state.cursor.position = {
-                            x: event.originalEvent.pageX,
-                            y: event.originalEvent.pageY
+                            x: e.originalEvent.pageX,
+                            y: e.originalEvent.pageY
                         };
-                    }).on('touchend', 'tbody tr', function() {
-                        clearTimeout(_this.downTimer);
-                        if (_this.state.cursor.cancelClick == false) {
-                            var isClick = false;
-                            if (_this.state.cursor.position == null) {
-                                isClick = true;
-                            } else {
-                                var dX = Math.abs(_this.state.cursor.position.x - _this.state.cursor.origin.x);
-                                var dY = Math.abs(_this.state.cursor.position.y - _this.state.cursor.origin.y);
-                                if (dX <= _this.state.cursor.tolerance && dY <= _this.state.cursor.tolerance) {
-                                    isClick = true;
-                                }
-                            }
-                            if (isClick) {
-                                _this._selectRow($(this));
-                                _this.options.onSelect(_this.getSelectedRow());
-                            }
-                            _this.state.cursor.origin = null;
-                            _this.state.cursor.position = null;
-                        }
+                        reset();
+                    })
+                    .on('dblClick', 'tbody tr', function(e){
+                        _this.options.onSelect(_this.getSelectedRow());
                     });
             } else {
                 $('table', this.element).attr("oncontextmenu","return false;"); // Disable right click context menu;
