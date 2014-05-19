@@ -1337,6 +1337,39 @@
         {
             this.options.url = url;
         },
+        getDataUrl: function ()
+        {
+            if (this.options.url === null) {
+                throw "grrr, dude you got no url";
+            }
+
+            var params = {
+                columns: [],
+                filters: {},
+                sort: {}
+            };
+
+            $.each(this.options.columns, function(index, column) {
+                params.columns.push(column.id);
+            });
+
+            $.each(this.options.sort, function(sortColumn, order) {
+                if ($.inArray(sortColumn, params.columns) > -1 && typeof order === 'string'
+                    && (order.toUpperCase() === 'ASC' || order.toUpperCase() === 'DESC')) {
+                    params['sort'][sortColumn] = order.toUpperCase();
+                }
+            });
+
+            $.each(this.options.filters, function(filterColumn, filter) {
+                if ($.inArray(filterColumn, params.columns) > -1
+                    && (typeof filter === 'string' || typeof filter === 'number'
+                    || typeof filter === 'boolean' || typeof filter === 'object')) {
+                    params['filters'][filterColumn] = filter;
+                }
+            });
+
+            return this.options.url + '?params=' + JSON.stringify(params);
+        },
         destroy: function()
         {
             this.element.empty();
