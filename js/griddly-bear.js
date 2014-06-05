@@ -60,7 +60,7 @@
                 cursor: {
                     position: null,
                     tolerance: 40, // px
-                    clickDelay: 500, //ms
+                    clickDelay: 500 //ms
                 }
             };
             // minWidth value required for responsiveness
@@ -629,7 +629,18 @@
             headTr.addClass('gb-data-table-header-row');
 
             if (this.options.multiSelect) {
-                headTr.append($('<th />').attr('data-selector', 'true'));
+                headTr.append(
+                    $('<th />')
+                        .attr('data-selector', 'true')
+                        .append(
+                            $('<input/>')
+                                .attr('type', 'checkbox')
+                                .attr('select-all-checkbox', 'true')
+                                .on('change', function() {
+                                    _this._toggleSelectAll();
+                                })
+                        )
+                );
             }
 
             $.each(this.options.columns, function(index, column) {
@@ -714,6 +725,25 @@
                 this._setReorderableColumns();
             }
         },
+        _toggleSelectAll: function() {
+            var _this = this;
+
+            if (!_this.options.multiSelect) {
+                return;
+            }
+
+            var data = _this.tableData;
+
+            if (typeof data.rows != 'undefined') {
+                $.each(data.rows, function(rowIndex, row) {
+                    if ($('[select-all-checkbox="true"]', _this.element).prop('checked')) {
+                        $('#' + rowIndex, _this.element).prop('checked', true);
+                    } else {
+                        $('#' + rowIndex, _this.element).prop('checked', false);
+                    }
+                });
+            }
+        },
         _applyHeaderSortStyling: function(sort) {
             var _this = this;
 
@@ -786,7 +816,12 @@
                 columns.push($(this).attr('data-id'));
             });
 
-            $.each(data.rows, function(rowIndex, row) {
+            if (_this.options.multiSelect) {
+                $('[select-all-checkbox="true"]', _this.element).prop('checked', false);
+            }
+
+            if (typeof data.rows != 'undefined') {
+                $.each(data.rows, function(rowIndex, row) {
                 row = _this.options.formatRow(row);
                 var tr = $('<tr />');
                 tr.addClass('gb-data-row')
@@ -881,6 +916,8 @@
                     lastRow.append(td);
                 });
             });
+            }
+
             this._createPagination();
             this.options.loadComplete(data.rows);
         },
@@ -1332,6 +1369,10 @@
             } else {
                 $('input.filter', this.element).hide();
             }
+        },
+        triggerResize: function()
+        {
+            this._onResize();
         },
         setUrl: function(url)
         {
