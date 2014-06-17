@@ -21,6 +21,8 @@
             header: null,
             onSelect: function(target) {},
             onFilter: function(filters) {},
+            onDataSuccess: function(response) {},
+            onDataFailure: function(response) {},
             multiSelect: false,
             rowsPerPage: 10,
             rowsPerPageOptions: [5,10,15],
@@ -220,24 +222,24 @@
                     _this.goToPage(parseInt(link.attr('data-page')));
                 }
             }).on('change', '.gb-pagination select', function() {
-                    var rowsPerPage = $(this).val();
-                    $(this).children('.gb-pagination select').val(rowsPerPage);
-                    _this.options.rowsPerPage = rowsPerPage;
-                    _this.state.page = 1;
-                    _this.reloadGrid();
-                }).on('click', 'th a.gb-column-sort', function(e) {
-                    e.preventDefault();
-                    var columnId = $(this).attr('data-id');
-                    var order = columnId in _this.options.sort ?
-                        (_this.options.sort[columnId].toLowerCase() == 'asc' ? 'desc' : 'asc') : 'asc';
-                    var sort = {};
-                    sort[columnId] = order;
-                    _this.option('sort', sort);
-                }).on('change', 'input.filter', function() {
-                    var filters = _this.options.filters;
-                    filters[$(this).attr('data-id')] = $(this).val();
-                    _this.option('filters', filters);
-                });
+                var rowsPerPage = $(this).val();
+                $(this).children('.gb-pagination select').val(rowsPerPage);
+                _this.options.rowsPerPage = rowsPerPage;
+                _this.state.page = 1;
+                _this.reloadGrid();
+            }).on('click', 'th a.gb-column-sort', function(e) {
+                e.preventDefault();
+                var columnId = $(this).attr('data-id');
+                var order = columnId in _this.options.sort ?
+                    (_this.options.sort[columnId].toLowerCase() == 'asc' ? 'desc' : 'asc') : 'asc';
+                var sort = {};
+                sort[columnId] = order;
+                _this.option('sort', sort);
+            }).on('change', 'input.filter', function() {
+                var filters = _this.options.filters;
+                filters[$(this).attr('data-id')] = $(this).val();
+                _this.option('filters', filters);
+            });
 
             // Touch events
             var _this = this;
@@ -281,29 +283,29 @@
                     _this._selectRow($(e.target).closest('tr'));
                     setTimeout(reset, _this.state.cursor.clickDelay);
                 })
-                    .on('touchmove', function(e){
-                        _this.state.cursor.position = {
-                            x: e.originalEvent.pageX,
-                            y: e.originalEvent.pageY
-                        };
-                        reset();
-                    })
-                    .on('dblClick', 'tbody tr', function(e){
-                        _this.options.onSelect(_this.getSelectedRow());
-                    });
+                .on('touchmove', function(e){
+                    _this.state.cursor.position = {
+                        x: e.originalEvent.pageX,
+                        y: e.originalEvent.pageY
+                    };
+                    reset();
+                })
+                .on('dblClick', 'tbody tr', function(e){
+                    _this.options.onSelect(_this.getSelectedRow());
+                });
             } else {
                 $('table', this.element).attr("oncontextmenu","return false;"); // Disable right click context menu;
                 $(this.element).on('dblclick', 'tbody tr', function() {
                     _this._selectRow($(this));
                     _this.options.onSelect(_this.getSelectedRow());
                 }).on('click', 'tbody tr', function() {
+                    _this._selectRow($(this));
+                }).on('mouseup', 'tbody tr', function(event) { // Simulated right click handler.
+                    if (event.which === 3) {
                         _this._selectRow($(this));
-                    }).on('mouseup', 'tbody tr', function(event) { // Simulated right click handler.
-                        if (event.which === 3) {
-                            _this._selectRow($(this));
-                            _this._showRowData(_this.state.selectedRow);
-                        }
-                    });
+                        _this._showRowData(_this.state.selectedRow);
+                    }
+                });
             }
         },
         _createFooter: function() {
@@ -822,102 +824,101 @@
 
             if (typeof data.rows != 'undefined') {
                 $.each(data.rows, function(rowIndex, row) {
-                row = _this.options.formatRow(row);
-                var tr = $('<tr />');
-                tr.addClass('gb-data-row')
-                if (_this.options.alternatingRows && !(rowIndex % 2)) {
-                    tr.addClass('alt');
-                }
-                tableBody.append(tr);
-                var lastRow = $('tbody tr.gb-data-row', _this.element).last();
+                    row = _this.options.formatRow(row);
+                    var tr = $('<tr />');
+                    tr.addClass('gb-data-row')
+                    if (_this.options.alternatingRows && !(rowIndex % 2)) {
+                        tr.addClass('alt');
+                    }
+                    tableBody.append(tr);
+                    var lastRow = $('tbody tr.gb-data-row', _this.element).last();
 
-                if (_this.options.multiSelect) {
-                    var td = $('<td />').attr('class', 'gb-data-cell');
-                    var checkbox = $('<input/>').attr({type: 'checkbox', id: rowIndex});
-                    td.append(checkbox);
-                    lastRow.append(td);
-                }
-
-                $.each(columns, function(index, column) {
-                    var td = $('<td />');
-                    var label = $('<span />');
-                    label.addClass('gb-vertical-label').html(_this.options.columns[index].title + ": ");
-                    td
-                        .addClass('gb-data-cell')
-                        .attr('data-id', column);
-
-                    if (_this.options.columns[index].sortable !== false) {
-                        if (sort[column]) {
-                            td.addClass('sorting');
-                        } else {
-                            td.removeClass('sorting');
-                        }
+                    if (_this.options.multiSelect) {
+                        var td = $('<td />').attr('class', 'gb-data-cell');
+                        var checkbox = $('<input/>').attr({type: 'checkbox', id: rowIndex});
+                        td.append(checkbox);
+                        lastRow.append(td);
                     }
 
-                    switch(_this.options.columns[index].dataType) {
-                        case 'boolean':
-                            var primaryKey = null;
-                            var checkbox = $('<div />').addClass('gb-checkbox');
-                            var input = $('<input/>').attr({ type: 'checkbox' });
+                    $.each(columns, function(index, column) {
+                        var td = $('<td />');
+                        var label = $('<span />');
+                        label.addClass('gb-vertical-label').html(_this.options.columns[index].title + ": ");
+                        td
+                            .addClass('gb-data-cell')
+                            .attr('data-id', column);
 
-                            if (row[column]) {
-                                input.attr('checked', 'checked');
-                            }
-
-                            $.each(columns, function(index, column) {
-                                if (_this.options.columns[index].primary == true) {
-                                    primaryKey = row[column];
-                                }
-                            });
-
-                            input.attr('data-id', column);
-                            if (primaryKey != null) {
-                                input.attr('name', primaryKey);
-                                input.attr('id', primaryKey);
+                        if (_this.options.columns[index].sortable !== false) {
+                            if (sort[column]) {
+                                td.addClass('sorting');
                             } else {
-                                input.attr('name', rowIndex);
-                                input.attr('id', rowIndex);
+                                td.removeClass('sorting');
                             }
-
-                            input.on('change', function() {
-                                _this.options.onColumnValueChanged(
-                                    primaryKey != null ? primaryKey : rowIndex,
-                                    input.prop('checked')
-                                );
-                            });
-
-                            checkbox.append(input);
-                            td.append(checkbox);
-
-                            break;
-                        case 'string':
-                        default:
-                            td
-                                .append(label)
-                                .append(
-                                    _this._formatColumnData(
-                                        row[column],
-                                        row,
-                                        _this.options.columns[index].format
-                                    )
-                                );
-                    }
-                    for (var i in _this.options.columns) {
-                        if (_this.options.columns[i].id == column &&
-                            _this.options.columns[i].primary != undefined &&
-                            _this.options.columns[i].primary) {
-                            td.attr('data-primary', 'true');
                         }
-                        if (_this.options.columns[i].id == column &&
-                            _this.options.columns[i].hidden) {
-                            td.addClass('hidden');
+
+                        switch(_this.options.columns[index].dataType) {
+                            case 'boolean':
+                                var primaryKey = null;
+                                var checkbox = $('<div />').addClass('gb-checkbox');
+                                var input = $('<input/>').attr({ type: 'checkbox' });
+
+                                if (row[column]) {
+                                    input.attr('checked', 'checked');
+                                }
+
+                                $.each(columns, function(index, column) {
+                                    if (_this.options.columns[index].primary == true) {
+                                        primaryKey = row[column];
+                                    }
+                                });
+
+                                input.attr('data-id', column);
+                                if (primaryKey != null) {
+                                    input.attr('name', primaryKey);
+                                    input.attr('id', primaryKey);
+                                } else {
+                                    input.attr('name', rowIndex);
+                                    input.attr('id', rowIndex);
+                                }
+
+                                input.on('change', function() {
+                                    _this.options.onColumnValueChanged(
+                                        primaryKey != null ? primaryKey : rowIndex,
+                                        input.prop('checked')
+                                    );
+                                });
+
+                                checkbox.append(input);
+                                td.append(checkbox);
+
+                                break;
+                            case 'string':
+                            default:
+                                td
+                                    .append(label)
+                                    .append(
+                                        _this._formatColumnData(
+                                            row[column],
+                                            row,
+                                            _this.options.columns[index].format
+                                        )
+                                    );
                         }
-                    }
-                    lastRow.append(td);
+                        for (var i in _this.options.columns) {
+                            if (_this.options.columns[i].id == column &&
+                                _this.options.columns[i].primary != undefined &&
+                                _this.options.columns[i].primary) {
+                                td.attr('data-primary', 'true');
+                            }
+                            if (_this.options.columns[i].id == column &&
+                                _this.options.columns[i].hidden) {
+                                td.addClass('hidden');
+                            }
+                        }
+                        lastRow.append(td);
+                    });
                 });
-            });
             }
-
             this._createPagination();
             this.options.loadComplete(data.rows);
         },
@@ -957,7 +958,7 @@
             var getData = {params: JSON.stringify(params)};
             $.getJSON(this.options.url, getData, function(data) {
                 if (!(typeof data.total === 'number' && data.total % 1 == 0)) {
-                    throw "grrr, total is not an integer";
+                    _this.options.onDataFailure(data);
                 }
 
                 _this.state.rows = data.total;
@@ -971,6 +972,7 @@
                 if (Object.keys(params['filters']).length > 0) {
                     _this.options.onFilter(params['filters']);
                 }
+                _this.options.onDataSuccess(data);
             });
         },
         _selectRow: function(target) {
