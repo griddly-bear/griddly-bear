@@ -52,6 +52,8 @@
             this.state = {
                 page: 1,
                 rows: 0,
+                isLoading: false, // Prevents race conditions during data-load
+                lastLoad: null, // Holds the data object incase canceled
                 isResizing: false,  // So we don't get race conditions.
                 lastResize: Date.now(),
                 width: $(window).width(),
@@ -103,6 +105,11 @@
             }
 
             this.state.width = $(this.element).width();
+        },
+        _checkIsLoading: function() {
+            if (this.state.isLoading) {
+                this.state.lastLoad.abort();
+            }
         },
 
         // private methods
@@ -956,23 +963,36 @@
             });
 
             var getData = {params: JSON.stringify(params)};
-            $.getJSON(this.options.url, getData, function(data) {
-                if (!(typeof data.total === 'number' && data.total % 1 == 0)) {
-                    _this.options.onDataFailure(data);
-                }
 
-                _this.state.rows = data.total;
-                _this.state.totalPages = Math.ceil(_this.state.rows / _this.options.rowsPerPage);
-                _this.tableData = data;
-                _this._drawRows(data, params['sort']);
-                _this._applyHeaderSortStyling(params['sort']);
-                _this._onResize();
-                $('table', _this.element).css('height', '');
-                $('.gb-filler', _this.element).remove();
-                if (Object.keys(params['filters']).length > 0) {
-                    _this.options.onFilter(params['filters']);
+            _this.state.lastLoad = $.ajax({
+                url: this.options.url,
+                type: 'GET',
+                data: getData,
+                dataType: 'json',
+                beforeSend: function(query) {
+                    _this._checkIsLoading(query);
+                    _this.state.isLoading = true;
+                },
+                success: function(data) {
+                    if (!(typeof data.total === 'number' && data.total % 1 == 0)) {
+                        _this.options.onDataFailure(data);
+                    }
+
+                    _this.state.rows = data.total;
+                    _this.state.totalPages = Math.ceil(_this.state.rows / _this.options.rowsPerPage);
+                    _this.tableData = data;
+                    _this._drawRows(data, params['sort']);
+                    _this._applyHeaderSortStyling(params['sort']);
+                    _this._onResize();
+                    $('table', _this.element).css('height', '');
+                    $('.gb-filler', _this.element).remove();
+                    if (Object.keys(params['filters']).length > 0) {
+                        _this.options.onFilter(params['filters']);
+                    }
+                    _this.options.onDataSuccess(data);
                 }
-                _this.options.onDataSuccess(data);
+            }).done(function() {
+                _this.state.isLoading = false;
             });
         },
         _selectRow: function(target) {
