@@ -38,7 +38,8 @@
             formatRow: function(row) {return row},
             getDataOnInitialLoad: true,
             getInitialDataOnSubsequentEventType: null,
-            getInitialDataOnSubsequentEventScope: null
+            getInitialDataOnSubsequentEventScope: null,
+            useHorizontalScroll: false
         },
         staticState: {
             mobile: false,
@@ -61,6 +62,8 @@
                 filtersOn: false,
                 selectedRow: null,
                 gridInitialLoad: false,
+                primaryGbDataTable: null,
+                primaryGbDataTableContainer: null,
                 cursor: {
                     position: null,
                     tolerance: 40, // px
@@ -627,6 +630,7 @@
         _createTable: function() {
             var _this = this;
 
+            var tableContainer = $('<div />');
             var table = $('<table />');
             var thead = $('<thead />');
             var tbody = $('<tbody />');
@@ -726,7 +730,16 @@
             table.append(tbody);
 
             table.addClass('gb-data-table');
-            this.element.empty().append(table);
+
+            if(this.options.useHorizontalScroll) {
+                table.css({'display':'block', 'width':'100%', 'overflow-x':'scroll'});
+            }
+            this.state.primaryGbDataTable = table;
+
+            tableContainer.append(table);
+            this.state.primaryGbDataTableContainer = tableContainer;
+
+            this.element.empty().append(tableContainer);
 
             this._applyHeaderSortStyling(this.options.sort);
 
@@ -1019,6 +1032,7 @@
             if (viewPortWidth < table.width()) { // View is shrinking.
                 while (viewPortWidth < table.width()) {
                     var foundRemovable = false;
+
                     $.each(this.options.columns.reverse(), function(index, column) {
                         var columnHeader = $('table thead th[data-id="' + column.id + '"]', _this.element);
                         var columnRows = $('table tbody tr td[data-id="' + column.id + '"]', _this.element);
@@ -1094,6 +1108,10 @@
             setTimeout(function() {
                 _this._createPagination();
             }, 500);
+
+            if (!_this.staticState.mobile && _this.options.useHorizontalScroll) {
+                _this.state.primaryGbDataTable.css({'display':'block', 'width':'100%', 'overflow-x':'scroll'});
+            }
 
             _this.state.isResizing = false;
             _this.state.lastResize = Date.now();
