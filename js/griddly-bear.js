@@ -8,7 +8,8 @@
             sortable: true,
             filterable: true,
             filterOptions: {'placeholder': 'Search...'},
-            dataType: null
+            dataType: null,
+            minWidth: 150
         },
         events: {
             columnsResorted: 'columnResorted',
