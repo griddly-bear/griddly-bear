@@ -7,6 +7,7 @@
             hidden: false,
             sortable: true,
             filterable: true,
+            internal: false,
             filterOptions: {'placeholder': 'Search...'},
             dataType: null,
             minWidth: 150
@@ -371,6 +372,10 @@
 
             var popoverContent = $('<ul></ul>');
             $.each(this.options.columns, function(index, column) {
+                if (column.internal) {
+                    return true;
+                }
+
                 var columnSelectCb = $('<input />')
                     .attr({
                         type: "checkbox",
@@ -659,6 +664,11 @@
 
             $.each(this.options.columns, function(index, column) {
                 column = $.extend({}, _this.columnDefaults, column);
+
+                if (column.internal) {
+                    return true;
+                }
+
                 var th = $('<th />').attr('data-id', column.id);
 
                 if (column.required) {
