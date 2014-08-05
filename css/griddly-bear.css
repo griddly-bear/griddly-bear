@@ -142,6 +142,11 @@
     padding:5px 10px;
     border-bottom:1px solid #DBDBDB;
     cursor: pointer;
+    width: 100%;
+}
+
+.gb-data-table .gb-data-row .gb-data-cell.multiselect-cell {
+    width: auto;
 }
 
 .gb-data-table .gb-data-row .gb-data-cell.sorting {
