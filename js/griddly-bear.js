@@ -743,7 +743,7 @@
             table.addClass('gb-data-table');
 
             if(this.options.useHorizontalScroll) {
-                table.css({'display':'block', 'width':'100%', 'overflow-x':'scroll'});
+                tableContainer.css({'display':'block', 'width':'100%', 'overflow-x':'scroll'});
             }
             this.state.primaryGbDataTable = table;
 
@@ -866,6 +866,7 @@
 
                     if (_this.options.multiSelect) {
                         var td = $('<td />').attr('class', 'gb-data-cell');
+                        td.addClass('multiselect-cell');
                         var checkbox = $('<input/>').attr({type: 'checkbox', id: rowIndex});
                         td.append(checkbox);
                         lastRow.append(td);
@@ -1040,7 +1041,8 @@
             } else {
                 minWidthTotal = _this._getMinWidthTotal();
             }
-            if (viewPortWidth < table.width()) { // View is shrinking.
+
+            if (viewPortWidth < table.width() && !_this.options.useHorizontalScroll) { // View is shrinking.
                 while (viewPortWidth < table.width()) {
                     var foundRemovable = false;
 
@@ -1121,7 +1123,7 @@
             }, 500);
 
             if (!_this.staticState.mobile && _this.options.useHorizontalScroll) {
-                _this.state.primaryGbDataTable.css({'display':'block', 'width':'100%', 'overflow-x':'scroll'});
+                _this.state.primaryGbDataTable.css({'display':'block', 'width':'100%'});
             }
 
             _this.state.isResizing = false;
