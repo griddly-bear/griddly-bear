@@ -1043,29 +1043,30 @@
             }
 
             if (viewPortWidth < table.width() && !_this.options.useHorizontalScroll) { // View is shrinking.
-                while (viewPortWidth < table.width()) {
+                var executions = 0;
+                while (viewPortWidth < table.width() && executions < this.options.columns.length) {
                     var foundRemovable = false;
-
-                    $.each(this.options.columns.reverse(), function(index, column) {
+                    $.each(_this.options.columns.reverse(), function(index, column) {
                         var columnHeader = $('table thead th[data-id="' + column.id + '"]', _this.element);
                         var columnRows = $('table tbody tr td[data-id="' + column.id + '"]', _this.element);
-                        if (columnHeader.hasClass("gb-hidden") == false) {
-                            if (typeof columnHeader.attr("data-required") == 'undefined') {
-                                foundRemovable = true;
-                            } else if (columnHeader.attr("data-required") == 'false') {
-                                foundRemovable = true;
-                            }
-                            if (foundRemovable) {
-                                columnHeader.addClass("gb-hidden");
-                                columnRows.addClass("gb-hidden");
-                                return false; // Break from each loop
-                            }
+                        if (columnHeader.length && !columnHeader.hasClass("gb-hidden") &&
+                            (
+                                typeof columnHeader.attr("data-required") == 'undefined' ||
+                                    columnHeader.attr("data-required") == null ||
+                                    columnHeader.attr("data-required") == 'false' ||
+                                    columnHeader.attr("data-required") == false
+                                )) {
+                            foundRemovable = true;
+                            columnHeader.addClass("gb-hidden");
+                            columnRows.addClass("gb-hidden");
+                            return false; // Break from each loop
                         }
                     });
                     if (foundRemovable == false) { // Nothing to hide? Switch to vertical.
                         isVerticalLayout = true;
                         break;
                     }
+                    executions++;
                 }
             } else if (table.width() >= minWidthTotal) { // View is growing.
                 var spaceToFill = table.width() - minWidthTotal;
