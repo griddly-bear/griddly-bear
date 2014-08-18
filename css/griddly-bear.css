@@ -153,6 +153,10 @@
     background: rgba(223, 223, 223, .5);
 }
 
+.gb-data-table .gb-data-row .gb-data-cell .gb-cell-min-height {
+    height: 17px;
+}
+
 .gb-data-table tr th:not(:last-child).sorting_asc,
 .gb-data-table tr th:not(:last-child).sorting_desc,
 .gb-data-table tr td:not(:last-child).sorting {
