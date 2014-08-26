@@ -875,7 +875,9 @@
                     $.each(columns, function(index, column) {
                         var td = $('<td />');
                         var label = $('<span />');
+                        var div = $('<div />');
                         label.addClass('gb-vertical-label').html(_this.options.columns[index].title + ": ");
+                        div.addClass('gb-cell-min-height');
                         td
                             .addClass('gb-data-cell')
                             .attr('data-id', column);
@@ -921,12 +923,12 @@
                                 });
 
                                 checkbox.append(input);
-                                td.append(checkbox);
+                                div.append(checkbox);
 
                                 break;
                             case 'string':
                             default:
-                                td
+                                div
                                     .append(label)
                                     .append(
                                         _this._formatColumnData(
@@ -936,6 +938,7 @@
                                         )
                                     );
                         }
+                        td.append(div);
                         for (var i in _this.options.columns) {
                             if (_this.options.columns[i].id == column &&
                                 _this.options.columns[i].primary != undefined &&
