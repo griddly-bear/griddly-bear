@@ -796,6 +796,16 @@
                 }
             });
         },
+        _disableReorderableColumns: function() {
+            var _this = this,
+                selector = "table.gb-data-table>thead>tr.gb-data-table-header-row"
+            this.element.find(selector).sortable('option', 'disabled', true);
+        },
+        _enableReorderableColumns: function() {
+            var _this = this,
+                selector = "table.gb-data-table>thead>tr.gb-data-table-header-row"
+            this.element.find(selector).sortable('option', 'disabled', false);
+        },
         _setReorderableColumns: function() {
             var _this = this,
                 selector = "table.gb-data-table>thead>tr.gb-data-table-header-row"
@@ -1422,8 +1432,10 @@
             this.state.filtersOn = !this.state.filtersOn;
 
             if (this.state.filtersOn) {
+                this._disableReorderableColumns();
                 $('input.filter', this.element).show();
             } else {
+                this._enableReorderableColumns();
                 $('input.filter', this.element).hide();
             }
         },
