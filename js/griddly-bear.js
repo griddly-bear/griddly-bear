@@ -249,7 +249,7 @@
                 _this.option('sort', sort);
             }).on('change', 'input.filter', function() {
                 var filters = _this.options.filters;
-                filters[$(this).attr('data-id')] = $(this).val();
+                filters[$(this).attr('data-id')] = $(this).val().trim();
                 _this.option('filters', filters);
             });
 
