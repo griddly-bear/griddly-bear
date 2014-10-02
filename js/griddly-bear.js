@@ -66,6 +66,7 @@
                 gridInitialLoad: false,
                 primaryGbDataTable: null,
                 primaryGbDataTableContainer: null,
+                columnReorderingInit: false,
                 cursor: {
                     position: null,
                     tolerance: 40, // px
@@ -756,6 +757,7 @@
 
             if (this.options.columnReordering) {
                 this._setReorderableColumns();
+                this.state.columnReorderingInit = true;
             }
         },
         _toggleSelectAll: function() {
@@ -796,16 +798,6 @@
                 }
             });
         },
-        _disableReorderableColumns: function() {
-            var _this = this,
-                selector = "table.gb-data-table>thead>tr.gb-data-table-header-row"
-            this.element.find(selector).sortable('option', 'disabled', true);
-        },
-        _enableReorderableColumns: function() {
-            var _this = this,
-                selector = "table.gb-data-table>thead>tr.gb-data-table-header-row"
-            this.element.find(selector).sortable('option', 'disabled', false);
-        },
         _setReorderableColumns: function() {
             var _this = this,
                 selector = "table.gb-data-table>thead>tr.gb-data-table-header-row"
@@ -826,6 +818,16 @@
                         _this.element.trigger(_this.events.columnsResorted, [idArray]);
                     }
                 });
+        },
+        _disableReorderableColumns: function() {
+            var _this = this,
+                selector = "table.gb-data-table>thead>tr.gb-data-table-header-row"
+            this.element.find(selector).sortable('option', 'disabled', true);
+        },
+        _enableReorderableColumns: function() {
+            var _this = this,
+                selector = "table.gb-data-table>thead>tr.gb-data-table-header-row"
+            this.element.find(selector).sortable('option', 'disabled', false);
         },
         _reorderTableColumns: function(orderArray) {
             $.each(orderArray, function(index, columnId){
@@ -1065,14 +1067,14 @@
                         if (columnHeader.length && !columnHeader.hasClass("gb-hidden") &&
                             (
                                 typeof columnHeader.attr("data-required") == 'undefined' ||
-                                    columnHeader.attr("data-required") == null ||
-                                    columnHeader.attr("data-required") == 'false' ||
-                                    columnHeader.attr("data-required") == false
-                                )) {
-                            foundRemovable = true;
-                            columnHeader.addClass("gb-hidden");
-                            columnRows.addClass("gb-hidden");
-                            return false; // Break from each loop
+                                columnHeader.attr("data-required") == null ||
+                                columnHeader.attr("data-required") == 'false' ||
+                                columnHeader.attr("data-required") == false
+                            )) {
+                                foundRemovable = true;
+                                columnHeader.addClass("gb-hidden");
+                                columnRows.addClass("gb-hidden");
+                                return false; // Break from each loop
                         }
                     });
                     if (foundRemovable == false) { // Nothing to hide? Switch to vertical.
@@ -1421,6 +1423,7 @@
                     filters[column.column] = column.value;
                 }
             });
+
             this.option('filters', filters);
         },
         clearFilters: function()
@@ -1432,10 +1435,14 @@
             this.state.filtersOn = !this.state.filtersOn;
 
             if (this.state.filtersOn) {
-                this._disableReorderableColumns();
+                if (this.state.columnReorderingInit) {
+                    this._disableReorderableColumns();
+                }
                 $('input.filter', this.element).show();
             } else {
-                this._enableReorderableColumns();
+                if (this.state.columnReorderingInit) {
+                    this._enableReorderableColumns();
+                }
                 $('input.filter', this.element).hide();
             }
         },
