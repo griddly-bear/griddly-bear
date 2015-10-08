@@ -22,6 +22,7 @@
             footer: {pagination: true},
             header: null,
             onSelect: function(target) {},
+            onShiftDoubleClick: function(target){},
             onFilter: function(filters) {},
             onDataSuccess: function(response) {},
             onDataFailure: function(response) {},
@@ -308,9 +309,13 @@
                 });
             } else {
                 $('table', this.element).attr("oncontextmenu","return false;"); // Disable right click context menu;
-                $(this.element).on('dblclick', 'tbody tr', function() {
+                $(this.element).on('dblclick', 'tbody tr', function(e) {
                     _this._selectRow($(this));
-                    _this.options.onSelect(_this.getSelectedRow());
+                    if(e.shiftKey){
+                        this.options.onShiftDoubleClick(_this.getSelectedRow())
+                    } else {
+                        _this.options.onSelect(_this.getSelectedRow());
+                    }
                 }).on('click', 'tbody tr', function() {
                     _this._selectRow($(this));
                 }).on('mouseup', 'tbody tr', function(event) { // Simulated right click handler.
