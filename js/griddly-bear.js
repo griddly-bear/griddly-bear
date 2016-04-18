@@ -19,6 +19,7 @@
         options: {
             columns: [],
             filters: {},
+            conditions: {},
             footer: {pagination: true},
             header: null,
             onSelect: function(target) {},
@@ -121,7 +122,7 @@
 
         // private methods
         _createButton: function(params) {
-            if (params.click == undefined || !$.isFunction(params.click)) {
+            if (typeof params.dropUpOptions == undefined && (params.click == undefined || !$.isFunction(params.click))) {
                 return false;
             }
 
@@ -183,7 +184,60 @@
                 });
             }
 
+
+
+            // create the options drop up and the button click event handler
+            if (typeof params.dropUpOptions != 'undefined') {
+                button.options = this._createDropUpOptions(params.dropUpOptions);
+                button.options.appendTo(this.element.parent());
+                button.on('click', function(e) {
+                    e.stopPropagation();
+                    var show = true;
+                    if (button.options.css('display') == 'none') {
+                        show = true;
+                    } else {
+                        show = false;
+                    }
+                    $(".gb-drop-up").hide();
+                    xPos = button.position().left;
+                    button.options.toggleOptions(show, xPos);
+                });
+            }
+
             return button;
+        },
+        _createDropUpOptions: function(options) {
+            var dropUpOptions = $('<ul class="dropdown-menu gb-drop-up">');
+            for (var a in options) {
+                option = options[a];
+                if (option.click != undefined || $.isFunction(option.click)) {
+
+                    // set the list item connections
+                    var dataAttributes = '';
+                    if (option.connect != undefined) {
+                        dataAttributes += ' data-drop-up-connect="'+option.connect[0]+'"';
+                        dataAttributes += ' data-drop-up-icon-on="'+option.connect[1]+'"';
+                        dataAttributes += ' data-drop-up-icon-off="'+option.connect[2]+'"';
+                    }
+                    var linkHtml = '<li'+dataAttributes+'><a><i class="'+option.icon+'"></i>&nbsp;'+option.text+'</a></li>;'
+                    optionLink = $(linkHtml).on('click', function(clickEvent) {
+                        return function() { clickEvent(); }
+                    } (option.click));
+
+                    dropUpOptions.append(optionLink);
+                }
+            }
+
+            dropUpOptions.toggleOptions = function(show, xPos) {
+                this.css('left', xPos);
+                if (show == true) {
+                    this.show();
+                } else {
+                    this.hide();
+                }
+            }
+
+            return dropUpOptions;
         },
         _createEvents: function() {
             var _this = this;
@@ -195,6 +249,30 @@
                     if (Date.now() > (_this.state.lastResize + 500)) {
                         _this._onResize();
                     }
+                }
+            });
+
+
+
+            // hide all drop ups when clicked outside of the drop up
+            $(document).click(function(e){
+                $('.gb-drop-up').hide();
+            });
+
+
+            // change drop up list item icons if a connection exists between them
+            $('.gb-drop-up li').click(function(e){
+                if ($(this).is('[data-drop-up-connect]')) {
+                    dropUpConnect = $(this).attr('data-drop-up-connect');
+                    $('.gb-drop-up li').attr('data-drop-up-connect', dropUpConnect).each(function(){
+                        onIcon = $(this).attr('data-drop-up-icon-on');
+                        offIcon = $(this).attr('data-drop-up-icon-off');
+                        $('i', this).removeClass(onIcon).addClass(offIcon);
+                    });
+
+                    onIcon = $(this).attr('data-drop-up-icon-on');
+                    offIcon = $(this).attr('data-drop-up-icon-off');
+                    $('i', this).removeClass(offIcon).addClass(onIcon);
                 }
             });
 
@@ -294,7 +372,6 @@
                         $(e.target).closest('tr').trigger('dblClick');
                     }
 
-                    _this._selectRow($(e.target).closest('tr'));
                     setTimeout(reset, _this.state.cursor.clickDelay);
                 })
                 .on('touchmove', function(e){
@@ -305,26 +382,26 @@
                     reset();
                 })
                 .on('dblClick', 'tbody tr', function(e){
-                    _this.options.onSelect(_this.getSelectedRow());
-                });
-            } else {
-                $('table', this.element).attr("oncontextmenu","return false;"); // Disable right click context menu;
-                $(this.element).on('dblclick', 'tbody tr', function(e) {
-                    _this._selectRow($(this));
-                    if(e.shiftKey){
-                        this.options.onShiftDoubleClick(_this.getSelectedRow())
-                    } else {
-                        _this.options.onSelect(_this.getSelectedRow());
-                    }
-                }).on('click', 'tbody tr', function() {
-                    _this._selectRow($(this));
-                }).on('mouseup', 'tbody tr', function(event) { // Simulated right click handler.
-                    if (event.which === 3) {
-                        _this._selectRow($(this));
-                        _this._showRowData(_this.state.selectedRow);
-                    }
+                           _this.options.onSelect(_this.getSelectedRow());
                 });
             }
+
+            $('table', this.element).attr("oncontextmenu","return false;"); // Disable right click context menu;
+            $(this.element).on('dblclick', 'tbody tr', function(e) {
+                _this._selectRow($(this));
+                if(e.shiftKey){
+                    _this.options.onShiftDoubleClick(_this.getSelectedRow())
+                } else {
+                    _this.options.onSelect(_this.getSelectedRow());
+                }
+            }).on('click', 'tbody tr', function() {
+                _this._selectRow($(this));
+            }).on('mouseup', 'tbody tr', function(event) { // Simulated right click handler.
+                if (event.which === 3) {
+                    _this._selectRow($(this));
+                    _this._showRowData(_this.state.selectedRow);
+                }
+            });
         },
         _createFooter: function() {
             if (typeof this.options.footer != 'undefined') {
@@ -979,6 +1056,7 @@
             var params = {
                 columns: [],
                 filters: {},
+                conditions: this.options.conditions,
                 page: this.state.page,
                 rowsPerPage: this.options.rowsPerPage,
                 sort: {}
@@ -1006,6 +1084,8 @@
                     params['filters'][filterColumn] = filter;
                 }
             });
+
+
 
             var getData = {params: JSON.stringify(params)};
 
@@ -1450,6 +1530,14 @@
                 }
                 $('input.filter', this.element).hide();
             }
+        },
+        clearConditions: function()
+        {
+            this.option('conditions', {});
+        },
+        setConditions: function(conditions)
+        {
+            this.option('conditions', conditions);
         },
         triggerResize: function()
         {
