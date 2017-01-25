@@ -7,6 +7,7 @@
             hidden: false,
             sortable: true,
             filterable: true,
+            keyValuePairs: null,
             internal: false,
             filterOptions: {'placeholder': 'Search...'},
             dataType: null,
@@ -327,7 +328,7 @@
                 var sort = {};
                 sort[columnId] = order;
                 _this.option('sort', sort);
-            }).on('change', 'input.filter', function() {
+            }).on('change', 'input.filter,select.filter', function() {
                 var filters = _this.options.filters;
                 filters[$(this).attr('data-id')] = $(this).val().trim();
                 _this.option('filters', filters);
@@ -796,12 +797,34 @@
                 }
 
                 if (column.filterable) {
-                    var filter = $('<input />').attr({
-                        'type': 'text',
-                        'name': 'filter[]',
-                        'data-id': column.id,
-                        'placeholder': column.filterOptions.placeholder})
-                        .addClass('filter');
+                    if (column.keyValuePairs !== null) {
+                        var filter = $('<select />').attr({
+                            'type': 'text',
+                            'name': 'filter[]',
+                            'data-id': column.id})
+                            .addClass('filter');
+                        
+                        var option = $('<option />')
+                            .attr('value', '')
+                            .html('Choose ...');
+                        filter.append(option);
+    
+                        for (var i in column.keyValuePairs) {
+                            key = column.keyValuePairs[i][0];
+                            value = column.keyValuePairs[i][1];
+                            var option = $('<option />')
+                                .attr('value', key)
+                                .html(value);
+                            filter.append(option);
+                        }
+                    } else {
+                        var filter = $('<input />').attr({
+                            'type': 'text',
+                            'name': 'filter[]',
+                            'data-id': column.id,
+                            'placeholder': column.filterOptions.placeholder})
+                            .addClass('filter');
+                    }
                     if (_this.state.filtersOn == false) {
                         filter.hide();
                     }
@@ -1028,6 +1051,7 @@
                                         _this._formatColumnData(
                                             row[column],
                                             row,
+                                            column,
                                             _this.options.columns[index].format
                                         )
                                     );
@@ -1077,11 +1101,21 @@
                 }
             });
 
+            var self = this;
             $.each(this.options.filters, function(filterColumn, filter) {
-                if ($.inArray(filterColumn, params.columns) > -1
-                    && (typeof filter === 'string' || typeof filter === 'number'
-                    || typeof filter === 'boolean' || typeof filter === 'object')) {
-                    params['filters'][filterColumn] = filter;
+                if (filter) {
+                    if ($.inArray(filterColumn, params.columns) > -1
+                        && (typeof filter === 'string' || typeof filter === 'number'
+                        || typeof filter === 'boolean' || typeof filter === 'object')) {
+                        
+                        // if the column uses keyValuePairs, make sure the filter checks for equality
+                        column = self._getColumnOptions(filterColumn);
+                        if (typeof column.keyValuePairs !== 'undefined') {
+                            params['filters'][filterColumn] = {type: 'eq', value: filter};
+                        } else {
+                            params['filters'][filterColumn] = filter;
+                        }
+                    }
                 }
             });
 
@@ -1266,6 +1300,15 @@
             width += parseInt(element.css("borderRightWidth").replace("px", ""));
             return width;
         },
+        _getColumnOptions: function(columnId) {
+            for (var i in this.options.columns) {
+                if (this.options.columns[i].id == columnId) {
+                    return this.options.columns[i];
+                }
+            }
+            
+            return false;
+        },
         _showRowData: function(target)
         {
             var _this = this;
@@ -1332,11 +1375,24 @@
             $('.gb-additional-data', this.element).remove();
             $('table tbody tr', this.element).removeClass('gb-data-expand');
         },
-        _formatColumnData: function(data, rowData, format)
+        _formatColumnData: function(data, rowData, column, format)
         {
+            // if the column uses keyValuePairs display that value
+            column = this._getColumnOptions(column);
+            if (typeof column.keyValuePairs !== 'undefined') {
+                for (var i in column.keyValuePairs) {
+                    key = column.keyValuePairs[i][0];
+                    value = column.keyValuePairs[i][1];
+                    if (key == data) {
+                        return value;
+                    }
+                }
+            }
+            
             if (typeof format == 'undefined') {
                 return data;
             }
+            
 
             if ($.isFunction(format)) {
                 return format(data, rowData);
@@ -1523,12 +1579,12 @@
                 if (this.state.columnReorderingInit) {
                     this._disableReorderableColumns();
                 }
-                $('input.filter', this.element).show();
+                $('input.filter, select.filter', this.element).show();
             } else {
                 if (this.state.columnReorderingInit) {
                     this._enableReorderableColumns();
                 }
-                $('input.filter', this.element).hide();
+                $('input.filter, select.filter', this.element).hide();
             }
         },
         clearConditions: function()

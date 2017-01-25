@@ -121,19 +121,29 @@
     display:block;
 }
 
-.gb-data-table .gb-data-table-header-row th input.filter {
+.gb-data-table .gb-data-table-header-row th input.filter,
+.gb-data-table .gb-data-table-header-row th select.filter {
     border:1px solid #DBDBDB;
     border-radius:2px;
     -moz-border-radius:2px;
     -webkit-border-radius:2px;
     -html-border-radius:2px;
-    background-image:url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAA0ElEQVR42mNgQAITJkyQmzFjxlYgXjh9+vQGIF4FxDnz58/nQFbHMHHiRGegosbOzk7e+vp6FhANVNgDFAuHK5o0aRI7UOAekBZF1gxVvA4u0N/fLwBUeIUBDYBMBio8gCIAVPhy5syZksgKgTbwgdyKohso4A5U3DV16lRZEH/KlCnyQLGp06ZN80NWpANUdAPoIQ8gfQuI7wJNPw8UNwTaxgRSIA3EFUDBr0CTrKDOYAKyeVatWsUMNwmq+ydQYT0DPgBUdAKIi4CmsOFTBwCpxnRsti0N2wAAAABJRU5ErkJggg==');
-    background-repeat: no-repeat;
-    background-position: 5px 3px;
-    padding:1px 1px 1px 17px;
+    background: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAA0ElEQVR42mNgQAITJkyQmzFjxlYgXjh9+vQGIF4FxDnz58/nQFbHMHHiRGegosbOzk7e+vp6FhANVNgDFAuHK5o0aRI7UOAekBZF1gxVvA4u0N/fLwBUeIUBDYBMBio8gCIAVPhy5syZksgKgTbwgdyKohso4A5U3DV16lRZEH/KlCnyQLGp06ZN80NWpANUdAPoIQ8gfQuI7wJNPw8UNwTaxgRSIA3EFUDBr0CTrKDOYAKyeVatWsUMNwmq+ydQYT0DPgBUdAKIi4CmsOFTBwCpxnRsti0N2wAAAABJRU5ErkJggg==') 5px center no-repeat;
+    padding:1px 1px 1px 17px !important;
     width:95%;
+    height: 20px;
+    margin: 0 !important;
+    font-size: 10px;
+    line-height: 12px !important;
+    -webkit-appearance:none;
+    -moz-appearance:none;
+    appearance:none;
+    -webkit-box-sizing: border-box;
+    box-sizing: border-box;
 }
-
+.gb-data-table .gb-data-table-header-row th select.filter {
+    background: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAA0ElEQVR42mNgQAITJkyQmzFjxlYgXjh9+vQGIF4FxDnz58/nQFbHMHHiRGegosbOzk7e+vp6FhANVNgDFAuHK5o0aRI7UOAekBZF1gxVvA4u0N/fLwBUeIUBDYBMBio8gCIAVPhy5syZksgKgTbwgdyKohso4A5U3DV16lRZEH/KlCnyQLGp06ZN80NWpANUdAPoIQ8gfQuI7wJNPw8UNwTaxgRSIA3EFUDBr0CTrKDOYAKyeVatWsUMNwmq+ydQYT0DPgBUdAKIi4CmsOFTBwCpxnRsti0N2wAAAABJRU5ErkJggg==') 5px center no-repeat, url('images/sort_asc.png') no-repeat center right;
+}
 .gb-data-table .gb-data-row.alt {
     background-color:#F5F5F5;
 }
